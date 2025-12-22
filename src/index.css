@@ -1,0 +1,192 @@
+/* IMAGE WRAPPER */
+.product-img-wrapper {
+  position: relative;
+  padding: 10px;
+}
+
+.product-img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* ❤️ HEART ICON BUTTON - Base Style */
+.wishlist-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  z-index: 10;
+  padding: 0;
+}
+
+/* Remove button focus outline */
+.wishlist-icon:focus {
+  outline: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Heart icon sizing */
+.wishlist-icon svg {
+  font-size: 20px;
+  transition: all 0.3s ease;
+}
+
+/* Hover effects */
+.wishlist-icon:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Click animation */
+.wishlist-icon:active {
+  transform: scale(0.95);
+}
+
+.wishlist-icon.active svg {
+  animation: heart-pop 0.5s ease-out;
+}
+
+@keyframes heart-pop {
+  0% { 
+    transform: scale(1); 
+  }
+  30% { 
+    transform: scale(1.4); 
+  }
+  50% { 
+    transform: scale(1.2); 
+  }
+  70% { 
+    transform: scale(1.3); 
+  }
+  100% { 
+    transform: scale(1); 
+  }
+}
+
+/* CARD STYLING */
+.product-card-modern {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.product-card-modern:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* TITLE & PRICE */
+.product-title {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.product-price {
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: #000;
+}
+
+/* BUTTON STYLING */
+.add-to-cart-btn {
+  background-color: #2b7fff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #1a5fd9 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(43, 127, 255, 0.3) !important;
+}
+
+.add-to-cart-btn:active {
+  transform: translateY(0);
+}
+
+/* VIEW DETAILS LINK */
+.view-details-link {
+  text-decoration: none;
+  color: #2b7fff;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.view-details-link:hover {
+  color: #1a5fd9;
+  text-decoration: underline;
+  transform: translateX(2px);
+}
+
+/* src/index.css - Add these styles */
+
+.product-img {
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-img {
+  transform: scale(1.05);
+}
+
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.product-card .card-body {
+  padding: 1rem;
+}
+
+.product-card .card-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 3rem;
+}
+
+/* Product details page specific styles */
+.product-details-img {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.size-selector .btn {
+  min-width: 50px;
+}
+
+.quantity-input {
+  width: 60px;
+  text-align: center;
+}
