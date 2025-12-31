@@ -1,6 +1,7 @@
 // src/context/CartContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import API from "../api/apiService";
+import { useAlert } from "./AlertContext";
 
 const CartContext = createContext();
 
@@ -9,24 +10,26 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load cart
+  const { showAlert } = useAlert();
+
+  /* ============================
+     LOAD CART
+  ============================ */
   useEffect(() => {
     const fetchCart = async () => {
       try {
         const res = await API.get("/cart");
-        // Check if response is HTML (indicates routing issue)
-        if (typeof res.data === 'string' && res.data.includes('<!doctype html>')) {
-          throw new Error("API request was routed to frontend instead of backend");
+
+        if (typeof res.data === "string" && res.data.includes("<!doctype html>")) {
+          throw new Error("API routed to frontend instead of backend");
         }
-        
-        // Safely access nested properties
+
         const cartData = res.data?.data?.cart?.items || [];
         setCart(cartData);
         setError(null);
       } catch (error) {
-        console.error("Error fetching cart:", error);
         setError(error.message || "Failed to load cart");
-        setCart([]); // Set empty cart as fallback
+        setCart([]);
       } finally {
         setLoading(false);
       }
@@ -35,119 +38,118 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, []);
 
-  const addToCart = async (productId, quantity = 1, size) => {
+  /* ============================
+     ADD TO CART (WITH TOAST)
+  ============================ */
+  const addToCart = async (productId, quantity = 1, size = null) => {
     try {
       setLoading(true);
+
+      const existingItem = cart.find(
+        (item) =>
+          item?.product?._id === productId &&
+          (item.size || null) === size
+      );
+
       const res = await API.post("/cart/add", {
         productId,
         quantity,
         size,
       });
-      
-      // Check if response is HTML
-      if (typeof res.data === 'string' && res.data.includes('<!doctype html>')) {
-        throw new Error("API request was routed to frontend instead of backend");
+
+      if (typeof res.data === "string") {
+        throw new Error("Invalid response");
       }
-      
-      // Safely access nested properties
+
       const cartData = res.data?.data?.cart?.items || [];
       setCart(cartData);
       setError(null);
-      return { success: true, message: res.data?.data?.message || "Added to cart" };
+
+      showAlert(
+        existingItem
+          ? "Quantity increased in cart"
+          : "Added to cart",
+        "success"
+      );
+
+      return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || error.message || "Failed to add to cart";
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to add to cart";
       setError(message);
-      return { success: false, message };
+      showAlert(message, "danger");
+      return { success: false };
     } finally {
       setLoading(false);
     }
   };
 
+  /* ============================
+     UPDATE QUANTITY (WITH TOAST)
+  ============================ */
   const updateQty = async (productId, quantity, size) => {
     try {
       setLoading(true);
+
       const res = await API.put("/cart/update", {
         productId,
         quantity,
         size,
       });
-      
-      // Check if response is HTML
-      if (typeof res.data === 'string' && res.data.includes('<!doctype html>')) {
-        throw new Error("API request was routed to frontend instead of backend");
-      }
-      
-      // Safely access nested properties
+
       const cartData = res.data?.data?.cart?.items || [];
       setCart(cartData);
       setError(null);
-      return { success: true, message: res.data?.data?.message || "Cart updated" };
+
+      showAlert("Cart quantity updated", "success");
+      return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || error.message || "Failed to update cart";
+      const message = error.message || "Failed to update cart";
       setError(message);
-      return { success: false, message };
+      showAlert(message, "danger");
+      return { success: false };
     } finally {
       setLoading(false);
     }
   };
 
-  const removeFromCart = async (productId, size) => {
-    try {
-      setLoading(true);
-      const res = await API.delete(`/cart/remove/${productId}`, {
-        params: { size },
-      });
-      
-      // Check if response is HTML
-      if (typeof res.data === 'string' && res.data.includes('<!doctype html>')) {
-        throw new Error("API request was routed to frontend instead of backend");
-      }
-      
-      // Safely access nested properties
-      const cartData = res.data?.data?.cart?.items || [];
-      setCart(cartData);
-      setError(null);
-      return { success: true, message: res.data?.data?.message || "Removed from cart" };
-    } catch (error) {
-      const message = error.response?.data?.message || error.message || "Failed to remove from cart";
-      setError(message);
-      return { success: false, message };
-    } finally {
-      setLoading(false);
+  /* ============================
+     REMOVE FROM CART (WITH TOAST)
+  ============================ */
+const removeFromCart = async (productId, size = null) => {
+  try {
+    setLoading(true);
+
+    const res = await API.delete(`/cart/remove/${productId}`, {
+      params: { size },
+    });
+
+    if (typeof res.data === "string" && res.data.includes("<!doctype html>")) {
+      throw new Error("API routed to frontend instead of backend");
     }
-  };
 
-  const clearCart = async () => {
-    try {
-      setLoading(true);
-      const res = await API.delete("/cart/clear");
-      
-      // Check if response is HTML
-      if (typeof res.data === 'string' && res.data.includes('<!doctype html>')) {
-        throw new Error("API request was routed to frontend instead of backend");
-      }
-      
-      // Safely access nested properties
-      const cartData = res.data?.data?.cart?.items || [];
-      setCart(cartData);
-      setError(null);
-      return { success: true, message: res.data?.data?.message || "Cart cleared" };
-    } catch (error) {
-      const message = error.response?.data?.message || error.message || "Failed to clear cart";
-      setError(message);
-      return { success: false, message };
-    } finally {
-      setLoading(false);
-    }
-  };
+    const cartData = res.data?.data?.cart?.items || [];
+    setCart(cartData);
+    setError(null);
 
-  const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.product?.price || 0) * (item.quantity || 0), 0);
-  };
+    showAlert("Removed from cart", "warning");
+    return { success: true };
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to remove from cart";
+    setError(message);
+    showAlert(message, "danger");
+    return { success: false };
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + (item.quantity || 0), 0);
-  };
+
 
   return (
     <CartContext.Provider
@@ -158,9 +160,6 @@ export const CartProvider = ({ children }) => {
         addToCart,
         updateQty,
         removeFromCart,
-        clearCart,
-        getTotalPrice,
-        getTotalItems,
       }}
     >
       {children}

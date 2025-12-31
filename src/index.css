@@ -190,3 +190,11 @@
   width: 60px;
   text-align: center;
 }
+
+html, body, #root {
+  height: 100%;
+}
+
+main {
+  flex: 1;
+}

@@ -1,6 +1,7 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
 import AlertMessage from "./components/common/AlertMessage";
 
 import Home from "./pages/Home";
@@ -29,6 +30,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} /> {/* Add this route */}
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 }

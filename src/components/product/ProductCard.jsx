@@ -1,11 +1,11 @@
 // src/components/product/ProductCard.jsx
 import { Card, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { FaHeart, FaRegHeart } from "react-icons/fa"; 
+import { FaHeart, FaRegHeart, FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useAlert } from "../../context/AlertContext";
-import "../../index.css"
+import "../../index.css";
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
@@ -16,8 +16,8 @@ const ProductCard = ({ product }) => {
 
   const handleWishlist = async (e) => {
     e.preventDefault();
-    e.stopPropagation(); 
-    
+    e.stopPropagation();
+
     try {
       if (isWishlisted) {
         const result = await removeFromWishlist(product._id);
@@ -26,7 +26,7 @@ const ProductCard = ({ product }) => {
         const result = await addToWishlist(product._id);
         showAlert(result.message);
       }
-    } catch (error) {
+    } catch {
       showAlert("An error occurred with wishlist operation");
     }
   };
@@ -34,20 +34,35 @@ const ProductCard = ({ product }) => {
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     try {
       const result = await addToCart(product._id);
       showAlert(result.message);
-    } catch (error) {
+    } catch {
       showAlert("Failed to add to cart");
     }
   };
 
-  // Generate a unique key for this product card
-  const uniqueKey = `product-${product._id || product.id || Math.random().toString(36).substr(2, 9)}`;
+  /* ==========================
+     RENDER STAR RATING
+  ========================== */
+  const renderStars = (rating = 0) => {
+    const stars = [];
+
+    for (let i = 1; i <= 5; i++) {
+      if (rating >= i) {
+        stars.push(<FaStar key={i} className="text-warning me-1" />);
+      } else if (rating >= i - 0.5) {
+        stars.push(<FaStarHalfAlt key={i} className="text-warning me-1" />);
+      } else {
+        stars.push(<FaStar key={i} className="text-secondary me-1" />);
+      }
+    }
+    return stars;
+  };
 
   return (
-    <Card className="product-card h-100 border-0 shadow-sm" key={uniqueKey}>
+    <Card className="product-card h-100 border-0 shadow-sm">
       <div className="position-relative">
         <Card.Img
           variant="top"
@@ -67,9 +82,22 @@ const ProductCard = ({ product }) => {
           )}
         </Button>
       </div>
+
       <Card.Body className="d-flex flex-column">
         <Card.Title className="fs-6">{product.name}</Card.Title>
-        <Card.Text className="fw-bold text-danger">₹{product.price}</Card.Text>
+
+        {/* ⭐ Rating Display */}
+        <div className="d-flex align-items-center mb-2">
+          {renderStars(product.rating)}
+          <small className="ms-1 text-muted">
+            ({product.rating})
+          </small>
+        </div>
+
+        <Card.Text className="fw-bold text-danger">
+          ₹{product.price}
+        </Card.Text>
+
         <div className="mt-auto">
           <Button
             variant="outline-danger"
