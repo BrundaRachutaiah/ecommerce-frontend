@@ -1,4 +1,3 @@
-// src/context/CartContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import API from "../api/apiService";
 import { useAlert } from "./AlertContext";
@@ -6,30 +5,38 @@ import { useAlert } from "./AlertContext";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+  // Initialize cart from localStorage if available
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const { showAlert } = useAlert();
 
-  /* ============================
-     LOAD CART
-  ============================ */
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // Fetch cart from API on initial load
   useEffect(() => {
     const fetchCart = async () => {
       try {
+        setLoading(true);
         const res = await API.get("/cart");
-
-        if (typeof res.data === "string" && res.data.includes("<!doctype html>")) {
-          throw new Error("API routed to frontend instead of backend");
-        }
-
         const cartData = res.data?.data?.cart?.items || [];
         setCart(cartData);
         setError(null);
-      } catch (error) {
-        setError(error.message || "Failed to load cart");
-        setCart([]);
+      } catch (err) {
+        console.error("Error fetching cart:", err);
+        setError("Failed to load cart");
+        // If API fails, try to use localStorage data
+        const savedCart = localStorage.getItem("cart");
+        if (savedCart) {
+          setCart(JSON.parse(savedCart));
+        }
       } finally {
         setLoading(false);
       }
@@ -38,46 +45,33 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, []);
 
-  /* ============================
-     ADD TO CART (WITH TOAST)
-  ============================ */
   const addToCart = async (productId, quantity = 1, size = null) => {
     try {
       setLoading(true);
-
+      
+      // Check if product already exists in cart
       const existingItem = cart.find(
         (item) =>
           item?.product?._id === productId &&
           (item.size || null) === size
       );
-
-      const res = await API.post("/cart/add", {
-        productId,
-        quantity,
-        size,
-      });
-
-      if (typeof res.data === "string") {
-        throw new Error("Invalid response");
-      }
-
+      
+      const res = await API.post("/cart/add", { productId, quantity, size });
       const cartData = res.data?.data?.cart?.items || [];
       setCart(cartData);
       setError(null);
-
+      
+      // Show appropriate message
       showAlert(
         existingItem
           ? "Quantity increased in cart"
           : "Added to cart",
         "success"
       );
-
+      
       return { success: true };
-    } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to add to cart";
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to add to cart";
       setError(message);
       showAlert(message, "danger");
       return { success: false };
@@ -86,27 +80,17 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  /* ============================
-     UPDATE QUANTITY (WITH TOAST)
-  ============================ */
-  const updateQty = async (productId, quantity, size) => {
+  const updateQty = async (productId, quantity, size = null) => {
     try {
       setLoading(true);
-
-      const res = await API.put("/cart/update", {
-        productId,
-        quantity,
-        size,
-      });
-
+      const res = await API.put("/cart/update", { productId, quantity, size });
       const cartData = res.data?.data?.cart?.items || [];
       setCart(cartData);
       setError(null);
-
-      showAlert("Cart quantity updated", "success");
+      showAlert("Cart updated", "success");
       return { success: true };
-    } catch (error) {
-      const message = error.message || "Failed to update cart";
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to update cart";
       setError(message);
       showAlert(message, "danger");
       return { success: false };
@@ -115,41 +99,58 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  /* ============================
-     REMOVE FROM CART (WITH TOAST)
-  ============================ */
-const removeFromCart = async (productId, size = null) => {
-  try {
-    setLoading(true);
-
-    const res = await API.delete(`/cart/remove/${productId}`, {
-      params: { size },
-    });
-
-    if (typeof res.data === "string" && res.data.includes("<!doctype html>")) {
-      throw new Error("API routed to frontend instead of backend");
+  const removeFromCart = async (productId, size = null) => {
+    try {
+      setLoading(true);
+      const res = await API.delete(`/cart/remove/${productId}`, {
+        params: { size },
+      });
+      const cartData = res.data?.data?.cart?.items || [];
+      setCart(cartData);
+      setError(null);
+      showAlert("Removed from cart", "warning");
+      return { success: true };
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to remove from cart";
+      setError(message);
+      showAlert(message, "danger");
+      return { success: false };
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const cartData = res.data?.data?.cart?.items || [];
-    setCart(cartData);
-    setError(null);
+  const clearCart = async () => {
+    try {
+      setLoading(true);
+      await API.delete("/cart/clear");
+      setCart([]);
+      setError(null);
+      showAlert("Cart cleared", "success");
+      return { success: true };
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to clear cart";
+      setError(message);
+      showAlert(message, "danger");
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    showAlert("Removed from cart", "warning");
-    return { success: true };
-  } catch (error) {
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      "Failed to remove from cart";
-    setError(message);
-    showAlert(message, "danger");
-    return { success: false };
-  } finally {
-    setLoading(false);
-  }
-};
+  const getTotalPrice = () => {
+    return cart.reduce(
+      (sum, item) => sum + (item.product?.price || 0) * (item.quantity || 0),
+      0
+    );
+  };
 
-
+  const getCartCount = () => {
+    return cart.reduce(
+      (total, item) => total + (item.quantity || 0),
+      0
+    );
+  };
 
   return (
     <CartContext.Provider
@@ -160,6 +161,9 @@ const removeFromCart = async (productId, size = null) => {
         addToCart,
         updateQty,
         removeFromCart,
+        clearCart,
+        getTotalPrice,
+        getCartCount,
       }}
     >
       {children}

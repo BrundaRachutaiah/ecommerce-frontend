@@ -1,3 +1,4 @@
+// src/context/AlertContext.jsx
 import { createContext, useContext, useState } from "react";
 
 const AlertContext = createContext();
@@ -6,6 +7,8 @@ export const AlertProvider = ({ children }) => {
   const [alert, setAlert] = useState(null);
 
   const showAlert = (message, variant = "success") => {
+    if (!message) return; // ✅ prevent empty alert
+
     setAlert({ message, variant });
 
     setTimeout(() => {

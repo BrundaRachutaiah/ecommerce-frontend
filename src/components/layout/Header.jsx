@@ -1,13 +1,6 @@
-import {
-  Navbar,
-  Nav,
-  Container,
-  Form,
-  FormControl,
-  Button,
-  Badge,
-} from "react-bootstrap";
+import { Navbar, Nav, Container, Badge, Form } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { FaHeart, FaShoppingCart, FaUserCircle } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 
@@ -17,111 +10,82 @@ const Header = () => {
   const { cart } = useCart();
   const { wishlist } = useWishlist();
 
-  const cartCount = cart?.length || 0;
-  const wishlistCount = wishlist?.length || 0;
-
-  // ✅ AUTH CHECK
   const isLoggedIn = Boolean(localStorage.getItem("token"));
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const keyword = e.target.search.value;
-    if (keyword.trim()) {
-      navigate(`/products?search=${keyword}`);
-    }
-  };
+  // ✅ Cart quantity sum
+  const cartCount = cart.reduce(
+    (total, item) => total + (item.quantity || 0),
+    0
+  );
 
-  const handleLogout = () => {
+  const wishlistCount = wishlist.length;
+
+  const logoutHandler = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userInfo");
     navigate("/login");
   };
 
   return (
-    <Navbar bg="light" expand="lg" className="shadow-sm">
+    <Navbar bg="white" expand="lg" className="shadow-sm">
       <Container>
-        {/* Logo */}
+        {/* LOGO */}
         <Navbar.Brand as={Link} to="/" className="fw-bold text-primary">
           ShopEase
         </Navbar.Brand>
 
-        <Navbar.Toggle aria-controls="navbar-content" />
+        {/* SEARCH */}
+        <Form className="mx-auto w-50">
+          <Form.Control type="search" placeholder="Search" />
+        </Form>
 
-        <Navbar.Collapse id="navbar-content">
-          {/* Search Bar */}
-          <Form className="d-flex mx-auto w-50" onSubmit={handleSearch}>
-            <FormControl
-              type="search"
-              name="search"
-              placeholder="Search"
-              className="me-2"
-            />
-          </Form>
+        <Nav className="ms-auto align-items-center gap-3">
+          {/* PROFILE (ONLY WHEN LOGGED IN) */}
+          {isLoggedIn && (
+            <Nav.Link as={Link} to="/profile">
+              <FaUserCircle size={22} />
+            </Nav.Link>
+          )}
 
-          {/* Right Side Actions */}
-          <Nav className="ms-auto align-items-center gap-3">
+          {/* LOGIN / LOGOUT */}
+          {!isLoggedIn ? (
+            <Nav.Link as={Link} to="/login">
+              Login
+            </Nav.Link>
+          ) : (
+            <Nav.Link onClick={logoutHandler}>
+              Logout
+            </Nav.Link>
+          )}
 
-            {/* 🔐 AUTH SECTION */}
-            {!isLoggedIn ? (
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                onClick={() => navigate("/login")}
+          {/* WISHLIST */}
+          <Nav.Link as={Link} to="/wishlist" className="position-relative">
+            <FaHeart size={18} />
+            {wishlistCount > 0 && (
+              <Badge
+                bg="danger"
+                pill
+                className="position-absolute top-0 start-100 translate-middle"
               >
-                Login
-              </Button>
-            ) : (
-              <>
-                <Nav.Link as={Link} to="/profile">
-                  👤 Profile
-                </Nav.Link>
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Button>
-              </>
+                {wishlistCount}
+              </Badge>
             )}
+          </Nav.Link>
 
-            {/* Wishlist */}
-            <Nav.Link
-              as={Link}
-              to="/wishlist"
-              className="position-relative"
-            >
-              ❤️
-              {wishlistCount > 0 && (
-                <Badge
-                  bg="danger"
-                  pill
-                  className="position-absolute top-0 start-100 translate-middle"
-                >
-                  {wishlistCount}
-                </Badge>
-              )}
-            </Nav.Link>
-
-            {/* Cart */}
-            <Nav.Link
-              as={Link}
-              to="/cart"
-              className="position-relative"
-            >
-              🛒
-              {cartCount > 0 && (
-                <Badge
-                  bg="primary"
-                  pill
-                  className="position-absolute top-0 start-100 translate-middle"
-                >
-                  {cartCount}
-                </Badge>
-              )}
-            </Nav.Link>
-
-          </Nav>
-        </Navbar.Collapse>
+          {/* CART */}
+          <Nav.Link as={Link} to="/cart" className="position-relative">
+            <FaShoppingCart size={18} />
+            {cartCount > 0 && (
+              <Badge
+                bg="primary"
+                pill
+                className="position-absolute top-0 start-100 translate-middle"
+              >
+                {cartCount}
+              </Badge>
+            )}
+          </Nav.Link>
+        </Nav>
       </Container>
     </Navbar>
   );

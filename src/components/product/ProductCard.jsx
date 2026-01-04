@@ -1,6 +1,5 @@
 // src/components/product/ProductCard.jsx
 import { Card, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
 import { FaHeart, FaRegHeart, FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
@@ -8,7 +7,7 @@ import { useAlert } from "../../context/AlertContext";
 import "../../index.css";
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart, loading } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { showAlert } = useAlert();
 
@@ -20,35 +19,26 @@ const ProductCard = ({ product }) => {
 
     try {
       if (isWishlisted) {
-        const result = await removeFromWishlist(product._id);
-        showAlert(result.message);
+        await removeFromWishlist(product._id);
+        showAlert("Removed from wishlist", "danger");
       } else {
-        const result = await addToWishlist(product._id);
-        showAlert(result.message);
+        await addToWishlist(product._id);
+        showAlert("Added to wishlist", "success");
       }
     } catch {
-      showAlert("An error occurred with wishlist operation");
+      showAlert("Wishlist operation failed", "danger");
     }
   };
 
+  // ✅ CART TOAST REMOVED FROM UI
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    try {
-      const result = await addToCart(product._id);
-      showAlert(result.message);
-    } catch {
-      showAlert("Failed to add to cart");
-    }
+    await addToCart(product._id);
   };
 
-  /* ==========================
-     RENDER STAR RATING
-  ========================== */
   const renderStars = (rating = 0) => {
     const stars = [];
-
     for (let i = 1; i <= 5; i++) {
       if (rating >= i) {
         stars.push(<FaStar key={i} className="text-warning me-1" />);
@@ -86,7 +76,6 @@ const ProductCard = ({ product }) => {
       <Card.Body className="d-flex flex-column">
         <Card.Title className="fs-6">{product.name}</Card.Title>
 
-        {/* ⭐ Rating Display */}
         <div className="d-flex align-items-center mb-2">
           {renderStars(product.rating)}
           <small className="ms-1 text-muted">
@@ -98,16 +87,15 @@ const ProductCard = ({ product }) => {
           ₹{product.price}
         </Card.Text>
 
-        <div className="mt-auto">
-          <Button
-            variant="outline-danger"
-            size="sm"
-            className="w-100"
-            onClick={handleAddToCart}
-          >
-            Add to Cart
-          </Button>
-        </div>
+        <Button
+          variant="outline-danger"
+          size="sm"
+          className="w-100 mt-auto"
+          onClick={handleAddToCart}
+          disabled={loading}
+        >
+          {loading ? "Adding..." : "Add to Cart"}
+        </Button>
       </Card.Body>
     </Card>
   );

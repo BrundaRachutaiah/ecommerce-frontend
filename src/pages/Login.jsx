@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import { useState } from "react";
 import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
@@ -10,6 +9,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
   const { showAlert } = useAlert();
 
@@ -19,9 +19,16 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await API.post("/users/login", { email, password });
-      localStorage.setItem("userInfo", JSON.stringify(response.data.data));
-      showAlert("Login successful");
+      const res = await API.post("/users/login", { email, password });
+
+      // ✅ FIX: Store token + user separately
+      localStorage.setItem("token", res.data.data.token);
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify(res.data.data.user)
+      );
+
+      showAlert("Login successful", "success");
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
@@ -37,44 +44,37 @@ const Login = () => {
           <Card>
             <Card.Body>
               <h3 className="text-center mb-4">Login</h3>
-              
+
               {error && <Alert variant="danger">{error}</Alert>}
-              
+
               <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" controlId="email">
-                  <Form.Label>Email address</Form.Label>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
-                    placeholder="Enter email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3" controlId="password">
+                <Form.Group className="mb-3">
                   <Form.Label>Password</Form.Label>
                   <Form.Control
                     type="password"
-                    placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </Form.Group>
 
-                <Button
-                  variant="primary"
-                  type="submit"
-                  className="w-100"
-                  disabled={loading}
-                >
+                <Button className="w-100" type="submit" disabled={loading}>
                   {loading ? "Logging in..." : "Login"}
                 </Button>
               </Form>
-              
+
               <div className="text-center mt-3">
-                Don't have an account? <Link to="/register">Register</Link>
+                Don&apos;t have an account? <Link to="/register">Register</Link>
               </div>
             </Card.Body>
           </Card>

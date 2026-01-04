@@ -1,26 +1,28 @@
 import { useEffect, useState } from "react";
-import { Card, Button, Form, Modal } from "react-bootstrap";
+import { Card, Button, Form, Modal, Alert, Row, Col } from "react-bootstrap";
 import API from "../../api/apiService";
 import { useAlert } from "../../context/AlertContext";
 
 const AddressList = () => {
+  const { showAlert } = useAlert();
+
   const [addresses, setAddresses] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // ✅ FORM STATE (MATCHES BACKEND SCHEMA EXACTLY)
   const [form, setForm] = useState({
     name: "",
+    phone: "",
     addressLine1: "",
     addressLine2: "",
     city: "",
     state: "",
     postalCode: "",
     country: "",
-    phone: "",
     isDefault: false,
   });
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingAddress, setEditingAddress] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const { showAlert } = useAlert();
 
   useEffect(() => {
     fetchAddresses();
@@ -29,71 +31,98 @@ const AddressList = () => {
   const fetchAddresses = async () => {
     try {
       const res = await API.get("/addresses");
-      setAddresses(res.data.data.addresses || []);
-    } catch (error) {
-      console.error("Error fetching addresses:", error);
-      showAlert("Failed to load addresses");
+      setAddresses(res.data?.data?.addresses || []);
+      setError("");
+    } catch (err) {
+      console.error("Error fetching addresses:", err);
+      const errorMessage = err.response?.data?.message || "Failed to load addresses";
+      setError(errorMessage);
+      showAlert(errorMessage, "danger");
     }
   };
 
   const addAddress = async () => {
-    if (!form.name || !form.addressLine1 || !form.city || !form.state || !form.postalCode || !form.country) {
-      showAlert("Please fill all required fields");
+    // ✅ STRONG FRONTEND VALIDATION
+    if (
+      !form.name ||
+      !form.phone ||
+      !form.addressLine1 ||
+      !form.city ||
+      !form.state ||
+      !form.postalCode ||
+      !form.country
+    ) {
+      const errorMessage = "Please fill all required fields";
+      setError(errorMessage);
+      showAlert(errorMessage, "warning");
       return;
     }
 
     setLoading(true);
+    setError("");
+    
     try {
-      const res = await API.post("/addresses/add", form);
-      setAddresses(res.data.data.addresses || []);
-      showAlert("Address added successfully");
-      setShowAddModal(false);
+      console.log("Sending address data:", form);
+      
+      const response = await API.post("/addresses/add", {
+        name: form.name,
+        phone: form.phone,               // ✅ REQUIRED
+        addressLine1: form.addressLine1,
+        addressLine2: form.addressLine2,
+        city: form.city,
+        state: form.state,
+        postalCode: form.postalCode,     // ✅ REQUIRED
+        country: form.country,
+        isDefault: form.isDefault,
+      });
+
+      console.log("Address response:", response.data);
+
+      showAlert("Address added successfully", "success");
+      setShowModal(false);
+
+      // Reset form
       setForm({
         name: "",
+        phone: "",
         addressLine1: "",
         addressLine2: "",
         city: "",
         state: "",
         postalCode: "",
         country: "",
-        phone: "",
         isDefault: false,
       });
-    } catch (error) {
-      console.error("Error adding address:", error);
-      showAlert("Failed to add address");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const updateAddress = async () => {
-    if (!form.name || !form.addressLine1 || !form.city || !form.state || !form.postalCode || !form.country) {
-      showAlert("Please fill all required fields");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await API.put(`/addresses/${editingAddress._id}`, form);
-      setAddresses(res.data.data.addresses || []);
-      showAlert("Address updated successfully");
-      setShowEditModal(false);
-      setEditingAddress(null);
-      setForm({
-        name: "",
-        addressLine1: "",
-        addressLine2: "",
-        city: "",
-        state: "",
-        postalCode: "",
-        country: "",
-        phone: "",
-        isDefault: false,
-      });
-    } catch (error) {
-      console.error("Error updating address:", error);
-      showAlert("Failed to update address");
+      fetchAddresses();
+    } catch (err) {
+      console.error("Error adding address:", err);
+      
+      // Get detailed error information
+      let errorMessage = "Failed to add address";
+      
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error("Error response data:", err.response.data);
+        errorMessage = err.response.data?.message || errorMessage;
+        
+        // If there's detailed error information, show it
+        if (err.response.data?.error) {
+          console.error("Detailed error:", err.response.data.error);
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        console.error("Error request:", err.request);
+        errorMessage = "No response from server. Please check your connection.";
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error("Error message:", err.message);
+        errorMessage = err.message || errorMessage;
+      }
+      
+      setError(errorMessage);
+      showAlert(errorMessage, "danger");
     } finally {
       setLoading(false);
     }
@@ -106,149 +135,184 @@ const AddressList = () => {
 
     try {
       await API.delete(`/addresses/${addressId}`);
-      setAddresses(addresses.filter(addr => addr._id !== addressId));
-      showAlert("Address deleted successfully");
-    } catch (error) {
-      console.error("Error deleting address:", error);
-      showAlert("Failed to delete address");
+      showAlert("Address deleted successfully", "success");
+      fetchAddresses();
+    } catch (err) {
+      console.error("Error deleting address:", err);
+      const errorMessage = err.response?.data?.message || "Failed to delete address";
+      setError(errorMessage);
+      showAlert(errorMessage, "danger");
     }
-  };
-
-  const handleEditAddress = (address) => {
-    setEditingAddress(address);
-    setForm({
-      name: address.name,
-      addressLine1: address.addressLine1,
-      addressLine2: address.addressLine2 || "",
-      city: address.city,
-      state: address.state,
-      postalCode: address.postalCode,
-      country: address.country,
-      phone: address.phone || "",
-      isDefault: address.isDefault || false,
-    });
-    setShowEditModal(true);
   };
 
   return (
     <>
+      {/* ADDRESS LIST */}
       <Card className="mb-4">
         <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex justify-content-between align-items-center">
             <h6>Saved Addresses</h6>
-            <Button variant="primary" size="sm" onClick={() => setShowAddModal(true)}>
-              Add New Address
+            <Button size="sm" onClick={() => setShowModal(true)}>
+              Add Address
             </Button>
           </div>
           <hr />
 
+          {error && <Alert variant="danger">{error}</Alert>}
+
           {addresses.length === 0 ? (
-            <p>No addresses saved yet</p>
+            <p>No address saved</p>
           ) : (
             addresses.map((addr) => (
-              <div key={addr._id} className="mb-3 p-3 border rounded">
-                <div className="d-flex justify-content-between">
-                  <div>
-                    <strong>{addr.name}</strong>
-                    {addr.isDefault && <span className="badge bg-primary ms-2">Default</span>}
-                    <p className="mb-0 small">
-                      {addr.addressLine1}
-                      {addr.addressLine2 && `, ${addr.addressLine2}`}
-                    </p>
-                    <p className="mb-0 small">
-                      {addr.city}, {addr.state}, {addr.postalCode}
-                    </p>
-                    <p className="mb-0 small">
-                      {addr.country}
-                    </p>
-                    {addr.phone && <p className="mb-0 small">Phone: {addr.phone}</p>}
-                  </div>
-                  <div>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleEditAddress(addr)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => deleteAddress(addr._id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
+              <div key={addr._id} className="border p-2 mb-2 rounded position-relative">
+                {addr.isDefault && (
+                  <span className="badge bg-primary position-absolute top-0 end-0 m-2">
+                    Default
+                  </span>
+                )}
+                <strong>{addr.name}</strong>
+                <p className="mb-0 small">
+                  {addr.addressLine1}, {addr.city}, {addr.state} –{" "}
+                  {addr.postalCode}
+                </p>
+                <p className="mb-0 small">📞 {addr.phone}</p>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => deleteAddress(addr._id)}
+                >
+                  Delete
+                </Button>
               </div>
             ))
           )}
         </Card.Body>
       </Card>
 
-      {/* Add Address Modal */}
-      <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
+      {/* ADD ADDRESS MODAL */}
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Add New Address</Modal.Title>
+          <Modal.Title>Add Address</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          {Object.keys(form).map((key) => (
-            <Form.Group key={key} className="mb-2">
-              <Form.Control
-                type={key === 'isDefault' ? 'checkbox' : 'text'}
-                placeholder={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                value={key === 'isDefault' ? undefined : form[key]}
-                checked={key === 'isDefault' ? form[key] : undefined}
-                onChange={(e) =>
-                  setForm({ 
-                    ...form, 
-                    [key]: key === 'isDefault' ? e.target.checked : e.target.value 
-                  })
-                }
-              />
-            </Form.Group>
-          ))}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAddModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={addAddress} disabled={loading}>
-            {loading ? "Adding..." : "Add Address"}
-          </Button>
-        </Modal.Footer>
-      </Modal>
 
-      {/* Edit Address Modal */}
-      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Address</Modal.Title>
-        </Modal.Header>
         <Modal.Body>
-          {Object.keys(form).map((key) => (
-            <Form.Group key={key} className="mb-2">
+          {error && <Alert variant="danger">{error}</Alert>}
+
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Full Name</Form.Label>
               <Form.Control
-                type={key === 'isDefault' ? 'checkbox' : 'text'}
-                placeholder={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                value={key === 'isDefault' ? undefined : form[key]}
-                checked={key === 'isDefault' ? form[key] : undefined}
+                placeholder="Full Name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Phone Number</Form.Label>
+              <Form.Control
+                type="tel"
+                placeholder="Phone Number"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Address Line 1</Form.Label>
+              <Form.Control
+                placeholder="Address Line 1"
+                value={form.addressLine1}
                 onChange={(e) =>
-                  setForm({ 
-                    ...form, 
-                    [key]: key === 'isDefault' ? e.target.checked : e.target.value 
-                  })
+                  setForm({ ...form, addressLine1: e.target.value })
+                }
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Address Line 2 (Optional)</Form.Label>
+              <Form.Control
+                placeholder="Address Line 2 (optional)"
+                value={form.addressLine2}
+                onChange={(e) =>
+                  setForm({ ...form, addressLine2: e.target.value })
                 }
               />
             </Form.Group>
-          ))}
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>City</Form.Label>
+                  <Form.Control
+                    placeholder="City"
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>State</Form.Label>
+                  <Form.Control
+                    placeholder="State"
+                    value={form.state}
+                    onChange={(e) => setForm({ ...form, state: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Postal Code</Form.Label>
+                  <Form.Control
+                    placeholder="Postal Code"
+                    value={form.postalCode}
+                    onChange={(e) =>
+                      setForm({ ...form, postalCode: e.target.value })
+                    }
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Country</Form.Label>
+                  <Form.Control
+                    placeholder="Country"
+                    value={form.country}
+                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Form.Check
+              type="checkbox"
+              label="Set as default address"
+              checked={form.isDefault}
+              onChange={(e) =>
+                setForm({ ...form, isDefault: e.target.checked })
+              }
+            />
+          </Form>
         </Modal.Body>
+
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={updateAddress} disabled={loading}>
-            {loading ? "Updating..." : "Update Address"}
+          <Button onClick={addAddress} disabled={loading}>
+            {loading ? "Saving..." : "Save Address"}
           </Button>
         </Modal.Footer>
       </Modal>

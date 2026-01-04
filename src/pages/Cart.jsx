@@ -6,9 +6,12 @@ import { useAlert } from "../context/AlertContext";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { cart, updateQty, removeFromCart } = useCart();
+  const { cart, updateQty, removeFromCart, getCartCount, loading } = useCart();
   const { addToWishlist } = useWishlist();
   const { showAlert } = useAlert();
+
+  // ✅ FIX: Use the getCartCount function from context
+  const cartCount = getCartCount();
 
   const safeCart = Array.isArray(cart) ? cart : [];
 
@@ -26,7 +29,7 @@ const Cart = () => {
   );
 
   const deliveryCharge =
-    itemsPrice > 1000 ? 0 : validCartItems.length > 0 ? 99 : 0;
+    itemsPrice > 1000 ? 0 : cartCount > 0 ? 99 : 0;
 
   const totalPrice = itemsPrice + deliveryCharge;
 
@@ -38,23 +41,38 @@ const Cart = () => {
       await addToWishlist(item.product._id);
       await removeFromCart(item.product._id, item.size);
       showAlert("Moved to wishlist", "success");
-    } catch (error) {
+    } catch {
       showAlert("Failed to move to wishlist", "danger");
     }
   };
 
+  if (loading) {
+    return (
+      <Container className="mt-4 text-center">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container className="mt-4">
-      <h4 className="mb-4">My Cart ({validCartItems.length})</h4>
+      <h4 className="mb-4">My Cart ({cartCount})</h4>
 
       <Row>
         {/* CART ITEMS */}
         <Col md={8}>
-          {validCartItems.length === 0 ? (
-            <p>Your cart is empty</p>
+          {cartCount === 0 ? (
+            <div className="text-center my-5">
+              <p>Your cart is empty</p>
+              <Button variant="primary" onClick={() => navigate("/products")}>
+                Continue Shopping
+              </Button>
+            </div>
           ) : (
             validCartItems.map((item) => (
-              <Card className="mb-3" key={item._id}>
+              <Card className="mb-3" key={`${item.product._id}-${item.size || "na"}`}>
                 <Card.Body>
                   <Row className="align-items-center">
                     <Col md={3}>
@@ -111,7 +129,6 @@ const Cart = () => {
                         </Button>
                       </div>
 
-                      {/* MOVE TO WISHLIST */}
                       <Button
                         variant="link"
                         size="sm"
@@ -148,7 +165,7 @@ const Cart = () => {
               <hr />
 
               <p>
-                Price ({validCartItems.length} items)
+                Price ({cartCount} items)
                 <span className="float-end">₹{itemsPrice}</span>
               </p>
 
@@ -168,7 +185,7 @@ const Cart = () => {
 
               <Button
                 className="w-100 mt-3"
-                disabled={validCartItems.length === 0}
+                disabled={cartCount === 0}
                 onClick={() => navigate("/checkout")}
               >
                 Place Order
