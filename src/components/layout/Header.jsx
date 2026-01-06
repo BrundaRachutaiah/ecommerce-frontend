@@ -1,30 +1,36 @@
 import { useEffect, useState } from "react";
 import { Navbar, Nav, Container, Badge, Form } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaHeart, FaShoppingCart, FaUserCircle } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { cart } = useCart();
   const { wishlist } = useWishlist();
 
-  // ✅ FIX: Use userInfo instead of token
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    Boolean(localStorage.getItem("userInfo"))
-  );
+  // ✅ SAFE LOGIN CHECK
+  const checkIsLoggedIn = () => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (
+      !userInfo ||
+      userInfo === "null" ||
+      userInfo === "undefined"
+    ) {
+      return false;
+    }
+    return true;
+  };
 
-  // ✅ Keep header reactive (also supports multi-tab login/logout)
+  const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
+
+  // ✅ IMPORTANT: re-check login status on every route change
   useEffect(() => {
-    const handleStorageChange = () => {
-      setIsLoggedIn(Boolean(localStorage.getItem("userInfo")));
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () =>
-      window.removeEventListener("storage", handleStorageChange);
-  }, []);
+    setIsLoggedIn(checkIsLoggedIn());
+  }, [location.pathname]);
 
   const cartCount = cart.reduce(
     (total, item) => total + (item.quantity || 0),
@@ -35,7 +41,7 @@ const Header = () => {
 
   const logoutHandler = () => {
     localStorage.removeItem("userInfo");
-    localStorage.removeItem("token"); // safe even if token doesn't exist
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
     navigate("/login");
   };
@@ -57,7 +63,7 @@ const Header = () => {
         </Form>
 
         <Nav className="ms-auto align-items-center gap-3">
-          {/* PROFILE ICON */}
+          {/* PROFILE ICON (ONLY AFTER LOGIN) */}
           {isLoggedIn && (
             <Nav.Link as={Link} to="/profile" title="My Profile">
               <FaUserCircle size={22} />
