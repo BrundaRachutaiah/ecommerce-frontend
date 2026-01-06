@@ -1,14 +1,22 @@
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
+import { useAlert } from "../context/AlertContext";
 
 const Wishlist = () => {
   const { wishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { showAlert } = useAlert();
 
   const moveToCart = async (productId) => {
-    await addToCart(productId, 1);
-    await removeFromWishlist(productId);
+    try {
+      await addToCart(productId, 1);
+      await removeFromWishlist(productId);
+
+      showAlert("Moved to cart", "success");
+    } catch {
+      showAlert("Failed to move to cart", "danger");
+    }
   };
 
   return (

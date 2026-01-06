@@ -10,7 +10,6 @@ const Cart = () => {
   const { addToWishlist } = useWishlist();
   const { showAlert } = useAlert();
 
-  // ✅ FIX: Use the getCartCount function from context
   const cartCount = getCartCount();
 
   const safeCart = Array.isArray(cart) ? cart : [];
@@ -34,12 +33,13 @@ const Cart = () => {
   const totalPrice = itemsPrice + deliveryCharge;
 
   /* ============================
-     MOVE TO WISHLIST
+     MOVE TO WISHLIST (FIXED)
   ============================ */
   const handleMoveToWishlist = async (item) => {
     try {
       await addToWishlist(item.product._id);
       await removeFromCart(item.product._id, item.size);
+
       showAlert("Moved to wishlist", "success");
     } catch {
       showAlert("Failed to move to wishlist", "danger");
@@ -49,9 +49,7 @@ const Cart = () => {
   if (loading) {
     return (
       <Container className="mt-4 text-center">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+        <div className="spinner-border" role="status" />
       </Container>
     );
   }
@@ -61,18 +59,20 @@ const Cart = () => {
       <h4 className="mb-4">My Cart ({cartCount})</h4>
 
       <Row>
-        {/* CART ITEMS */}
         <Col md={8}>
           {cartCount === 0 ? (
             <div className="text-center my-5">
               <p>Your cart is empty</p>
-              <Button variant="primary" onClick={() => navigate("/products")}>
+              <Button onClick={() => navigate("/products")}>
                 Continue Shopping
               </Button>
             </div>
           ) : (
             validCartItems.map((item) => (
-              <Card className="mb-3" key={`${item.product._id}-${item.size || "na"}`}>
+              <Card
+                key={`${item.product._id}-${item.size || "na"}`}
+                className="mb-3"
+              >
                 <Card.Body>
                   <Row className="align-items-center">
                     <Col md={3}>
@@ -157,7 +157,6 @@ const Cart = () => {
           )}
         </Col>
 
-        {/* PRICE DETAILS */}
         <Col md={4}>
           <Card>
             <Card.Body>
