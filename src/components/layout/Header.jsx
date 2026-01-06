@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Navbar, Nav, Container, Badge, Form } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaShoppingCart, FaUserCircle } from "react-icons/fa";
@@ -6,13 +7,23 @@ import { useWishlist } from "../../context/WishlistContext";
 
 const Header = () => {
   const navigate = useNavigate();
-
   const { cart } = useCart();
   const { wishlist } = useWishlist();
 
-  const isLoggedIn = Boolean(localStorage.getItem("token"));
+  // ✅ REACTIVE LOGIN STATE
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    Boolean(localStorage.getItem("token"))
+  );
 
-  // ✅ Cart quantity sum
+  // Optional: listen for token changes (multi-tab support)
+  useEffect(() => {
+    const handleStorage = () => {
+      setIsLoggedIn(Boolean(localStorage.getItem("token")));
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
   const cartCount = cart.reduce(
     (total, item) => total + (item.quantity || 0),
     0
@@ -23,24 +34,23 @@ const Header = () => {
   const logoutHandler = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
+    setIsLoggedIn(false); // ✅ instant UI update
     navigate("/login");
   };
 
   return (
     <Navbar bg="white" expand="lg" className="shadow-sm">
       <Container>
-        {/* LOGO */}
         <Navbar.Brand as={Link} to="/" className="fw-bold text-primary">
           ShopEase
         </Navbar.Brand>
 
-        {/* SEARCH */}
         <Form className="mx-auto w-50">
           <Form.Control type="search" placeholder="Search" />
         </Form>
 
         <Nav className="ms-auto align-items-center gap-3">
-          {/* PROFILE (ONLY WHEN LOGGED IN) */}
+          {/* PROFILE */}
           {isLoggedIn && (
             <Nav.Link as={Link} to="/profile">
               <FaUserCircle size={22} />
