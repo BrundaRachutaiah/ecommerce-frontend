@@ -36,7 +36,7 @@ const ProductList = () => {
   }, []);
 
   /* ===============================
-     FETCH PRODUCTS (BASE DATA)
+     FETCH PRODUCTS (BACKEND FILTERS)
   =============================== */
   useEffect(() => {
     const fetchProducts = async () => {
@@ -63,16 +63,14 @@ const ProductList = () => {
   }, [filters.category, filters.sort, filters.search, setSearchParams]);
 
   /* ===============================
-     APPLY FRONTEND FILTERS (FIXED)
+     FRONTEND FILTER (RATING)
   =============================== */
   useEffect(() => {
     let temp = [...products];
 
-    // ✅ FIXED RATING FILTER (string → number)
     if (filters.rating) {
       temp = temp.filter(
-        (product) =>
-          Number(product.rating) >= Number(filters.rating)
+        (product) => Number(product.rating) >= Number(filters.rating)
       );
     }
 
@@ -109,67 +107,72 @@ const ProductList = () => {
         <Col md={2} className="border-end">
           <h6>Filters</h6>
 
-          {/* CATEGORY (Single select) */}
-          <Form.Group className="mb-3">
-            <Form.Label>Category</Form.Label>
-            {categories.map((cat) => (
+          {/* ✅ PREVENT PAGE RELOAD */}
+          <Form onSubmit={(e) => e.preventDefault()}>
+            {/* CATEGORY */}
+            <Form.Group className="mb-3">
+              <Form.Label>Category</Form.Label>
+              {categories.map((cat) => (
+                <Form.Check
+                  key={cat._id}
+                  type="radio"
+                  name="category"
+                  label={cat.name}
+                  value={cat._id}
+                  checked={filters.category === cat._id}
+                  onChange={handleFilterChange}
+                />
+              ))}
+            </Form.Group>
+
+            {/* RATING */}
+            <Form.Group className="mb-3">
+              <Form.Label>Rating</Form.Label>
+              {["4", "3", "2"].map((r) => (
+                <Form.Check
+                  key={r}
+                  type="radio"
+                  name="rating"
+                  label={`${r}★ & above`}
+                  value={r}
+                  checked={filters.rating === r}
+                  onChange={handleFilterChange}
+                />
+              ))}
+            </Form.Group>
+
+            {/* SORT */}
+            <Form.Group className="mb-3">
+              <Form.Label>Sort by Price</Form.Label>
               <Form.Check
-                key={cat._id}
                 type="radio"
-                name="category"
-                label={cat.name}
-                value={cat._id}
-                checked={filters.category === cat._id}
+                name="sort"
+                label="Low to High"
+                value="price_low_high"
+                checked={filters.sort === "price_low_high"}
                 onChange={handleFilterChange}
               />
-            ))}
-          </Form.Group>
-
-          {/* RATING */}
-          <Form.Group className="mb-3">
-            <Form.Label>Rating</Form.Label>
-            {["4", "3", "2"].map((r) => (
               <Form.Check
-                key={r}
                 type="radio"
-                name="rating"
-                label={`${r}★ & above`}
-                value={r}
-                checked={filters.rating === r}
+                name="sort"
+                label="High to Low"
+                value="price_high_low"
+                checked={filters.sort === "price_high_low"}
                 onChange={handleFilterChange}
               />
-            ))}
-          </Form.Group>
+            </Form.Group>
 
-          {/* SORT */}
-          <Form.Group className="mb-3">
-            <Form.Label>Sort by Price</Form.Label>
-            <Form.Check
-              type="radio"
-              name="sort"
-              label="Low to High"
-              value="price_low_high"
-              checked={filters.sort === "price_low_high"}
-              onChange={handleFilterChange}
-            />
-            <Form.Check
-              type="radio"
-              name="sort"
-              label="High to Low"
-              value="price_high_low"
-              checked={filters.sort === "price_high_low"}
-              onChange={handleFilterChange}
-            />
-          </Form.Group>
-
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            className="w-100"
-            onClick={clearFilters}
-          >
-            Clear Filters
-          </Button>
+            {/* ✅ BUTTON MUST NOT SUBMIT */}
+            <Button
+              type="button"
+              variant="outline-secondary"
+              size="sm"
+              className="w-100"
+              onClick={clearFilters}
+            >
+              Clear Filters
+            </Button>
+          </Form>
         </Col>
 
         {/* ================= PRODUCTS ================= */}
