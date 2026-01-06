@@ -10,18 +10,20 @@ const Header = () => {
   const { cart } = useCart();
   const { wishlist } = useWishlist();
 
-  // ✅ REACTIVE LOGIN STATE
+  // ✅ FIX: Use userInfo instead of token
   const [isLoggedIn, setIsLoggedIn] = useState(
-    Boolean(localStorage.getItem("token"))
+    Boolean(localStorage.getItem("userInfo"))
   );
 
-  // Optional: listen for token changes (multi-tab support)
+  // ✅ Keep header reactive (also supports multi-tab login/logout)
   useEffect(() => {
-    const handleStorage = () => {
-      setIsLoggedIn(Boolean(localStorage.getItem("token")));
+    const handleStorageChange = () => {
+      setIsLoggedIn(Boolean(localStorage.getItem("userInfo")));
     };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+
+    window.addEventListener("storage", handleStorageChange);
+    return () =>
+      window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const cartCount = cart.reduce(
@@ -32,27 +34,32 @@ const Header = () => {
   const wishlistCount = wishlist.length;
 
   const logoutHandler = () => {
-    localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
-    setIsLoggedIn(false); // ✅ instant UI update
+    localStorage.removeItem("token"); // safe even if token doesn't exist
+    setIsLoggedIn(false);
     navigate("/login");
   };
 
   return (
     <Navbar bg="white" expand="lg" className="shadow-sm">
       <Container>
+        {/* LOGO */}
         <Navbar.Brand as={Link} to="/" className="fw-bold text-primary">
           ShopEase
         </Navbar.Brand>
 
+        {/* SEARCH */}
         <Form className="mx-auto w-50">
-          <Form.Control type="search" placeholder="Search" />
+          <Form.Control
+            type="search"
+            placeholder="Search products"
+          />
         </Form>
 
         <Nav className="ms-auto align-items-center gap-3">
-          {/* PROFILE */}
+          {/* PROFILE ICON */}
           {isLoggedIn && (
-            <Nav.Link as={Link} to="/profile">
+            <Nav.Link as={Link} to="/profile" title="My Profile">
               <FaUserCircle size={22} />
             </Nav.Link>
           )}
