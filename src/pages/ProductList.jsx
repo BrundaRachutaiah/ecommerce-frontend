@@ -13,6 +13,9 @@ const ProductList = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  /* ===============================
+     FILTER STATE (URL → STATE)
+  =============================== */
   const [filters, setFilters] = useState({
     categories: searchParams.get("category")
       ? searchParams.get("category").split(",")
@@ -28,11 +31,11 @@ const ProductList = () => {
   useEffect(() => {
     API.get("/categories")
       .then(res => setCategories(res.data.data.categories || []))
-      .catch(err => console.error(err));
+      .catch(err => console.error("Category error:", err));
   }, []);
 
   /* ===============================
-     FETCH PRODUCTS
+     FETCH PRODUCTS (NO URL MUTATION)
   =============================== */
   useEffect(() => {
     const fetchProducts = async () => {
@@ -45,12 +48,10 @@ const ProductList = () => {
         if (filters.sort) params.append("sort", filters.sort);
         if (filters.search) params.append("search", filters.search);
 
-        setSearchParams(params);
-
         const res = await API.get(`/products?${params.toString()}`);
         setProducts(res.data.data.products || []);
       } catch (err) {
-        console.error(err);
+        console.error("Products error:", err);
       } finally {
         setLoading(false);
       }
@@ -66,37 +67,64 @@ const ProductList = () => {
     let temp = [...products];
 
     if (filters.rating) {
-      temp = temp.filter(p => Number(p.rating) >= Number(filters.rating));
+      temp = temp.filter(
+        p => Number(p.rating) >= Number(filters.rating)
+      );
     }
 
     setFilteredProducts(temp);
   }, [products, filters.rating]);
 
   /* ===============================
-     HANDLE CATEGORY CHECKBOX
+     URL SYNC (SAFE)
   =============================== */
-  const handleCategoryChange = (catId) => {
-    setFilters(prev => ({
-      ...prev,
-      categories: prev.categories.includes(catId)
-        ? prev.categories.filter(id => id !== catId)
-        : [...prev.categories, catId],
-    }));
+  const syncUrlParams = (updatedFilters) => {
+    const params = new URLSearchParams();
+
+    if (updatedFilters.categories.length > 0)
+      params.set("category", updatedFilters.categories.join(","));
+    if (updatedFilters.rating) params.set("rating", updatedFilters.rating);
+    if (updatedFilters.sort) params.set("sort", updatedFilters.sort);
+    if (updatedFilters.search) params.set("search", updatedFilters.search);
+
+    setSearchParams(params, { replace: true });
   };
 
+  /* ===============================
+     HANDLERS
+  =============================== */
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+
+    setFilters(prev => {
+      const updated = { ...prev, [name]: value };
+      syncUrlParams(updated);
+      return updated;
+    });
+  };
+
+  const handleCategoryChange = (catId) => {
+    setFilters(prev => {
+      const updatedCategories = prev.categories.includes(catId)
+        ? prev.categories.filter(id => id !== catId)
+        : [...prev.categories, catId];
+
+      const updated = { ...prev, categories: updatedCategories };
+      syncUrlParams(updated);
+      return updated;
+    });
   };
 
   const clearFilters = () => {
-    setFilters({
+    const cleared = {
       categories: [],
       rating: "",
       sort: "",
       search: "",
-    });
-    setSearchParams({});
+    };
+
+    setFilters(cleared);
+    setSearchParams({}, { replace: true });
   };
 
   if (loading) return <Loader />;
@@ -104,12 +132,12 @@ const ProductList = () => {
   return (
     <Container fluid className="mt-4">
       <Row>
-        {/* FILTERS */}
+        {/* ================= FILTERS ================= */}
         <Col md={2} className="border-end">
           <h6>Filters</h6>
 
           <Form onSubmit={(e) => e.preventDefault()}>
-            {/* CATEGORY (CHECKBOXES) */}
+            {/* CATEGORY */}
             <Form.Group className="mb-3">
               <Form.Label>Category</Form.Label>
               {categories.map(cat => (
@@ -172,9 +200,11 @@ const ProductList = () => {
           </Form>
         </Col>
 
-        {/* PRODUCTS */}
+        {/* ================= PRODUCTS ================= */}
         <Col md={10}>
-          <h6>Showing Products ({filteredProducts.length})</h6>
+          <h6 className="mb-3">
+            Showing Products ({filteredProducts.length})
+          </h6>
 
           {filteredProducts.length === 0 ? (
             <div className="text-center my-5">
