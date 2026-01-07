@@ -5,22 +5,21 @@ import { useAlert } from "./AlertContext";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // Initialize cart from localStorage if available
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
-  
-  const [loading, setLoading] = useState(true);
+
+  const [loading, setLoading] = useState(true); // global cart loading
   const [error, setError] = useState(null);
   const { showAlert } = useAlert();
 
-  // Save cart to localStorage whenever it changes
+  // Persist cart
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // Fetch cart from API on initial load
+  // Fetch cart initially
   useEffect(() => {
     const fetchCart = async () => {
       try {
@@ -32,11 +31,8 @@ export const CartProvider = ({ children }) => {
       } catch (err) {
         console.error("Error fetching cart:", err);
         setError("Failed to load cart");
-        // If API fails, try to use localStorage data
         const savedCart = localStorage.getItem("cart");
-        if (savedCart) {
-          setCart(JSON.parse(savedCart));
-        }
+        if (savedCart) setCart(JSON.parse(savedCart));
       } finally {
         setLoading(false);
       }
@@ -48,27 +44,23 @@ export const CartProvider = ({ children }) => {
   const addToCart = async (productId, quantity = 1, size = null) => {
     try {
       setLoading(true);
-      
-      // Check if product already exists in cart
+
       const existingItem = cart.find(
         (item) =>
           item?.product?._id === productId &&
           (item.size || null) === size
       );
-      
+
       const res = await API.post("/cart/add", { productId, quantity, size });
       const cartData = res.data?.data?.cart?.items || [];
       setCart(cartData);
       setError(null);
-      
-      // Show appropriate message
+
       showAlert(
-        existingItem
-          ? "Quantity increased in cart"
-          : "Added to cart",
+        existingItem ? "Quantity increased in cart" : "Added to cart",
         "success"
       );
-      
+
       return { success: true };
     } catch (err) {
       const message = err.response?.data?.message || "Failed to add to cart";
@@ -84,15 +76,11 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       const res = await API.put("/cart/update", { productId, quantity, size });
-      const cartData = res.data?.data?.cart?.items || [];
-      setCart(cartData);
-      setError(null);
+      setCart(res.data?.data?.cart?.items || []);
       showAlert("Cart updated", "success");
       return { success: true };
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to update cart";
-      setError(message);
-      showAlert(message, "danger");
+      showAlert("Failed to update cart", "danger");
       return { success: false };
     } finally {
       setLoading(false);
@@ -105,15 +93,11 @@ export const CartProvider = ({ children }) => {
       const res = await API.delete(`/cart/remove/${productId}`, {
         params: { size },
       });
-      const cartData = res.data?.data?.cart?.items || [];
-      setCart(cartData);
-      setError(null);
+      setCart(res.data?.data?.cart?.items || []);
       showAlert("Removed from cart", "warning");
       return { success: true };
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to remove from cart";
-      setError(message);
-      showAlert(message, "danger");
+      showAlert("Failed to remove from cart", "danger");
       return { success: false };
     } finally {
       setLoading(false);
@@ -125,38 +109,30 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       await API.delete("/cart/clear");
       setCart([]);
-      setError(null);
       showAlert("Cart cleared", "success");
       return { success: true };
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to clear cart";
-      setError(message);
-      showAlert(message, "danger");
+      showAlert("Failed to clear cart", "danger");
       return { success: false };
     } finally {
       setLoading(false);
     }
   };
 
-  const getTotalPrice = () => {
-    return cart.reduce(
+  const getTotalPrice = () =>
+    cart.reduce(
       (sum, item) => sum + (item.product?.price || 0) * (item.quantity || 0),
       0
     );
-  };
 
-  const getCartCount = () => {
-    return cart.reduce(
-      (total, item) => total + (item.quantity || 0),
-      0
-    );
-  };
+  const getCartCount = () =>
+    cart.reduce((total, item) => total + (item.quantity || 0), 0);
 
   return (
     <CartContext.Provider
       value={{
         cart,
-        loading,
+        loading, // kept for cart page / header
         error,
         addToCart,
         updateQty,

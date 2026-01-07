@@ -1,4 +1,4 @@
-// src/components/product/ProductCard.jsx
+import { useState } from "react";
 import { Card, Button } from "react-bootstrap";
 import { FaHeart, FaRegHeart, FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
@@ -7,9 +7,11 @@ import { useAlert } from "../../context/AlertContext";
 import "../../index.css";
 
 const ProductCard = ({ product }) => {
-  const { addToCart, loading } = useCart();
+  const { addToCart } = useCart(); // ❌ no global loading used
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { showAlert } = useAlert();
+
+  const [adding, setAdding] = useState(false); // ✅ per-product loading
 
   const isWishlisted = isInWishlist(product._id);
 
@@ -30,11 +32,18 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  // ✅ CART TOAST REMOVED FROM UI
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    await addToCart(product._id);
+
+    if (adding) return;
+
+    setAdding(true);
+    try {
+      await addToCart(product._id);
+    } finally {
+      setAdding(false);
+    }
   };
 
   const renderStars = (rating = 0) => {
@@ -65,11 +74,7 @@ const ProductCard = ({ product }) => {
           className="position-absolute top-0 end-0 m-2 rounded-circle p-2"
           onClick={handleWishlist}
         >
-          {isWishlisted ? (
-            <FaHeart className="text-danger" />
-          ) : (
-            <FaRegHeart />
-          )}
+          {isWishlisted ? <FaHeart className="text-danger" /> : <FaRegHeart />}
         </Button>
       </div>
 
@@ -78,9 +83,7 @@ const ProductCard = ({ product }) => {
 
         <div className="d-flex align-items-center mb-2">
           {renderStars(product.rating)}
-          <small className="ms-1 text-muted">
-            ({product.rating})
-          </small>
+          <small className="ms-1 text-muted">({product.rating})</small>
         </div>
 
         <Card.Text className="fw-bold text-danger">
@@ -92,9 +95,9 @@ const ProductCard = ({ product }) => {
           size="sm"
           className="w-100 mt-auto"
           onClick={handleAddToCart}
-          disabled={loading}
+          disabled={adding}
         >
-          {loading ? "Adding..." : "Add to Cart"}
+          {adding ? "Adding..." : "Add to Cart"}
         </Button>
       </Card.Body>
     </Card>
