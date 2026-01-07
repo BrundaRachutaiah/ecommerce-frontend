@@ -9,9 +9,28 @@ const OrderHistory = () => {
 
   useEffect(() => {
     API.get("/orders")
-      .then((res) => setOrders(res.data.data.orders))
+      .then((res) => {
+        const fetchedOrders = res.data?.data?.orders || [];
+
+        // ✅ Sort orders: newest first
+        const sortedOrders = [...fetchedOrders].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setOrders(sortedOrders);
+      })
       .finally(() => setLoading(false));
   }, []);
+
+  // ✅ Safe date formatter
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   if (loading) return <Loader />;
 
@@ -27,6 +46,9 @@ const OrderHistory = () => {
           orders.map((order) => (
             <div key={order._id} className="mb-3 small">
               <strong>Order ID:</strong> {order._id}
+              <br />
+              <strong>Order Date:</strong>{" "}
+              {formatDate(order.createdAt)}
               <br />
               <strong>Total:</strong> ₹{order.totalPrice}
               <br />
