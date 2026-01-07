@@ -11,7 +11,6 @@ const Cart = () => {
   const { showAlert } = useAlert();
 
   const cartCount = getCartCount();
-
   const safeCart = Array.isArray(cart) ? cart : [];
 
   const validCartItems = safeCart.filter(
@@ -33,13 +32,13 @@ const Cart = () => {
   const totalPrice = itemsPrice + deliveryCharge;
 
   /* ============================
-     MOVE TO WISHLIST (FIXED)
+     MOVE TO WISHLIST
   ============================ */
-  const handleMoveToWishlist = async (item) => {
+  const handleMoveToWishlist = async (e, item) => {
+    e.preventDefault();
     try {
       await addToWishlist(item.product._id);
       await removeFromCart(item.product._id, item.size);
-
       showAlert("Moved to wishlist", "success");
     } catch {
       showAlert("Failed to move to wishlist", "danger");
@@ -63,7 +62,7 @@ const Cart = () => {
           {cartCount === 0 ? (
             <div className="text-center my-5">
               <p>Your cart is empty</p>
-              <Button onClick={() => navigate("/products")}>
+              <Button type="button" onClick={() => navigate("/products")}>
                 Continue Shopping
               </Button>
             </div>
@@ -98,6 +97,7 @@ const Cart = () => {
                     <Col md={3}>
                       <div className="d-flex align-items-center mb-2">
                         <Button
+                          type="button"
                           size="sm"
                           variant="outline-secondary"
                           disabled={item.quantity <= 1}
@@ -115,6 +115,7 @@ const Cart = () => {
                         <span className="mx-2">{item.quantity}</span>
 
                         <Button
+                          type="button"
                           size="sm"
                           variant="outline-secondary"
                           onClick={() =>
@@ -130,10 +131,11 @@ const Cart = () => {
                       </div>
 
                       <Button
+                        type="button"
                         variant="link"
                         size="sm"
                         className="p-0"
-                        onClick={() => handleMoveToWishlist(item)}
+                        onClick={(e) => handleMoveToWishlist(e, item)}
                       >
                         Move to Wishlist
                       </Button>
@@ -141,6 +143,7 @@ const Cart = () => {
 
                     <Col md={2}>
                       <Button
+                        type="button"
                         size="sm"
                         variant="outline-danger"
                         onClick={() =>
@@ -183,6 +186,7 @@ const Cart = () => {
               </h6>
 
               <Button
+                type="button"
                 className="w-100 mt-3"
                 disabled={cartCount === 0}
                 onClick={() => navigate("/checkout")}
