@@ -14,7 +14,9 @@ const ProductList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [filters, setFilters] = useState({
-    category: searchParams.get("category") || "",
+    categories: searchParams.get("category")
+      ? searchParams.get("category").split(",")
+      : [],
     rating: searchParams.get("rating") || "",
     sort: searchParams.get("sort") || "",
     search: searchParams.get("search") || "",
@@ -24,19 +26,13 @@ const ProductList = () => {
      FETCH CATEGORIES
   =============================== */
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await API.get("/categories");
-        setCategories(res.data.data.categories || []);
-      } catch (err) {
-        console.error("Error fetching categories", err);
-      }
-    };
-    fetchCategories();
+    API.get("/categories")
+      .then(res => setCategories(res.data.data.categories || []))
+      .catch(err => console.error(err));
   }, []);
 
   /* ===============================
-     FETCH PRODUCTS (BACKEND FILTERS)
+     FETCH PRODUCTS
   =============================== */
   useEffect(() => {
     const fetchProducts = async () => {
@@ -44,7 +40,8 @@ const ProductList = () => {
       try {
         const params = new URLSearchParams();
 
-        if (filters.category) params.append("category", filters.category);
+        if (filters.categories.length > 0)
+          params.append("category", filters.categories.join(","));
         if (filters.sort) params.append("sort", filters.sort);
         if (filters.search) params.append("search", filters.search);
 
@@ -53,14 +50,14 @@ const ProductList = () => {
         const res = await API.get(`/products?${params.toString()}`);
         setProducts(res.data.data.products || []);
       } catch (err) {
-        console.error("Error fetching products", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [filters.category, filters.sort, filters.search, setSearchParams]);
+  }, [filters.categories, filters.sort, filters.search]);
 
   /* ===============================
      FRONTEND FILTER (RATING)
@@ -69,28 +66,32 @@ const ProductList = () => {
     let temp = [...products];
 
     if (filters.rating) {
-      temp = temp.filter(
-        (product) => Number(product.rating) >= Number(filters.rating)
-      );
+      temp = temp.filter(p => Number(p.rating) >= Number(filters.rating));
     }
 
     setFilteredProducts(temp);
   }, [products, filters.rating]);
 
   /* ===============================
-     HANDLE FILTER CHANGE
+     HANDLE CATEGORY CHECKBOX
   =============================== */
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+  const handleCategoryChange = (catId) => {
+    setFilters(prev => ({
+      ...prev,
+      categories: prev.categories.includes(catId)
+        ? prev.categories.filter(id => id !== catId)
+        : [...prev.categories, catId],
+    }));
   };
 
-  /* ===============================
-     CLEAR FILTERS
-  =============================== */
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
   const clearFilters = () => {
     setFilters({
-      category: "",
+      categories: [],
       rating: "",
       sort: "",
       search: "",
@@ -103,24 +104,21 @@ const ProductList = () => {
   return (
     <Container fluid className="mt-4">
       <Row>
-        {/* ================= FILTERS ================= */}
+        {/* FILTERS */}
         <Col md={2} className="border-end">
           <h6>Filters</h6>
 
-          {/* ✅ PREVENT PAGE RELOAD */}
           <Form onSubmit={(e) => e.preventDefault()}>
-            {/* CATEGORY */}
+            {/* CATEGORY (CHECKBOXES) */}
             <Form.Group className="mb-3">
               <Form.Label>Category</Form.Label>
-              {categories.map((cat) => (
+              {categories.map(cat => (
                 <Form.Check
                   key={cat._id}
-                  type="radio"
-                  name="category"
+                  type="checkbox"
                   label={cat.name}
-                  value={cat._id}
-                  checked={filters.category === cat._id}
-                  onChange={handleFilterChange}
+                  checked={filters.categories.includes(cat._id)}
+                  onChange={() => handleCategoryChange(cat._id)}
                 />
               ))}
             </Form.Group>
@@ -128,7 +126,7 @@ const ProductList = () => {
             {/* RATING */}
             <Form.Group className="mb-3">
               <Form.Label>Rating</Form.Label>
-              {["4", "3", "2"].map((r) => (
+              {["4", "3", "2"].map(r => (
                 <Form.Check
                   key={r}
                   type="radio"
@@ -162,7 +160,6 @@ const ProductList = () => {
               />
             </Form.Group>
 
-            {/* ✅ BUTTON MUST NOT SUBMIT */}
             <Button
               type="button"
               variant="outline-secondary"
@@ -175,11 +172,9 @@ const ProductList = () => {
           </Form>
         </Col>
 
-        {/* ================= PRODUCTS ================= */}
+        {/* PRODUCTS */}
         <Col md={10}>
-          <h6 className="mb-3">
-            Showing Products ({filteredProducts.length})
-          </h6>
+          <h6>Showing Products ({filteredProducts.length})</h6>
 
           {filteredProducts.length === 0 ? (
             <div className="text-center my-5">
@@ -190,7 +185,7 @@ const ProductList = () => {
             </div>
           ) : (
             <Row>
-              {filteredProducts.map((product) => (
+              {filteredProducts.map(product => (
                 <Col md={3} key={product._id} className="mb-4">
                   <ProductCard product={product} />
                 </Col>
