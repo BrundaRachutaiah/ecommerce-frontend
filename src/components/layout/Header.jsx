@@ -12,14 +12,12 @@ const Header = () => {
   const { cart } = useCart();
   const { wishlist } = useWishlist();
 
-  // ✅ SAFE LOGIN CHECK
+  /* ===============================
+     LOGIN CHECK
+  =============================== */
   const checkIsLoggedIn = () => {
     const userInfo = localStorage.getItem("userInfo");
-    if (
-      !userInfo ||
-      userInfo === "null" ||
-      userInfo === "undefined"
-    ) {
+    if (!userInfo || userInfo === "null" || userInfo === "undefined") {
       return false;
     }
     return true;
@@ -27,11 +25,18 @@ const Header = () => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
 
-  // ✅ IMPORTANT: re-check login status on every route change
   useEffect(() => {
     setIsLoggedIn(checkIsLoggedIn());
   }, [location.pathname]);
 
+  /* ===============================
+     SEARCH STATE
+  =============================== */
+  const [searchTerm, setSearchTerm] = useState("");
+
+  /* ===============================
+     COUNTS
+  =============================== */
   const cartCount = cart.reduce(
     (total, item) => total + (item.quantity || 0),
     0
@@ -39,11 +44,27 @@ const Header = () => {
 
   const wishlistCount = wishlist.length;
 
+  /* ===============================
+     LOGOUT
+  =============================== */
   const logoutHandler = () => {
     localStorage.removeItem("userInfo");
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     navigate("/login");
+  };
+
+  /* ===============================
+     SEARCH HANDLER
+  =============================== */
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+
+    const trimmed = searchTerm.trim();
+    if (!trimmed) return;
+
+    // Navigate to product listing with search query
+    navigate(`/products?search=${encodeURIComponent(trimmed)}`);
   };
 
   return (
@@ -55,15 +76,20 @@ const Header = () => {
         </Navbar.Brand>
 
         {/* SEARCH */}
-        <Form className="mx-auto w-50">
+        <Form
+          className="mx-auto w-50"
+          onSubmit={handleSearchSubmit}
+        >
           <Form.Control
             type="search"
             placeholder="Search products"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </Form>
 
         <Nav className="ms-auto align-items-center gap-3">
-          {/* PROFILE ICON (ONLY AFTER LOGIN) */}
+          {/* PROFILE */}
           {isLoggedIn && (
             <Nav.Link as={Link} to="/profile" title="My Profile">
               <FaUserCircle size={22} />
