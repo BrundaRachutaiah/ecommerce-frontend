@@ -15,7 +15,9 @@ const Checkout = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ SAFE CART ITEMS
+  /* ===============================
+     SAFE CART ITEMS
+  =============================== */
   const safeCart = Array.isArray(cart) ? cart : [];
   const validCartItems = safeCart.filter(
     (item) =>
@@ -36,6 +38,9 @@ const Checkout = () => {
 
   const totalPrice = itemsPrice + deliveryCharge;
 
+  /* ===============================
+     FETCH ADDRESSES
+  =============================== */
   useEffect(() => {
     API.get("/addresses")
       .then((res) => {
@@ -46,6 +51,9 @@ const Checkout = () => {
       .catch(() => showAlert("Failed to load addresses", "danger"));
   }, [showAlert]);
 
+  /* ===============================
+     PLACE ORDER
+  =============================== */
   const placeOrder = async () => {
     if (!selectedAddress) {
       showAlert("Select an address", "warning");
@@ -89,7 +97,8 @@ const Checkout = () => {
   return (
     <Container className="mt-4">
       <Row>
-        <Col md={8}>
+        {/* ================= ORDER SUMMARY ================= */}
+        <Col md={validCartItems.length > 0 ? 8 : 12}>
           <h5>Order Summary</h5>
 
           {validCartItems.length === 0 ? (
@@ -108,36 +117,39 @@ const Checkout = () => {
           )}
         </Col>
 
-        <Col md={4}>
-          <Card>
-            <Card.Body>
-              <h6>Price Details</h6>
-              <hr />
-              <p>
-                Price ({validCartItems.length} items)
-                <span className="float-end">₹{itemsPrice}</span>
-              </p>
-              <p>
-                Delivery
-                <span className="float-end">
-                  {deliveryCharge === 0 ? "Free" : `₹${deliveryCharge}`}
-                </span>
-              </p>
-              <hr />
-              <h6>
-                Total
-                <span className="float-end">₹{totalPrice}</span>
-              </h6>
-              <Button
-                className="w-100 mt-3"
-                disabled={loading || validCartItems.length === 0}
-                onClick={placeOrder}
-              >
-                {loading ? "Placing..." : "Place Order"}
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
+        {/* ================= PRICE DETAILS (ONLY IF CART HAS ITEMS) ================= */}
+        {validCartItems.length > 0 && (
+          <Col md={4}>
+            <Card>
+              <Card.Body>
+                <h6>Price Details</h6>
+                <hr />
+                <p>
+                  Price ({validCartItems.length} items)
+                  <span className="float-end">₹{itemsPrice}</span>
+                </p>
+                <p>
+                  Delivery
+                  <span className="float-end">
+                    {deliveryCharge === 0 ? "Free" : `₹${deliveryCharge}`}
+                  </span>
+                </p>
+                <hr />
+                <h6>
+                  Total
+                  <span className="float-end">₹{totalPrice}</span>
+                </h6>
+                <Button
+                  className="w-100 mt-3"
+                  disabled={loading}
+                  onClick={placeOrder}
+                >
+                  {loading ? "Placing..." : "Place Order"}
+                </Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        )}
       </Row>
     </Container>
   );
