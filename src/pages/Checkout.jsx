@@ -46,7 +46,9 @@ const Checkout = () => {
       .then((res) => {
         const list = res.data?.data?.addresses || [];
         setAddresses(list);
-        if (list.length > 0) setSelectedAddress(list[0]);
+
+        // ❌ DO NOT auto-select any address
+        setSelectedAddress(null);
       })
       .catch(() => showAlert("Failed to load addresses", "danger"));
   }, [showAlert]);
@@ -55,6 +57,7 @@ const Checkout = () => {
      PLACE ORDER
   =============================== */
   const placeOrder = async () => {
+    // ✅ HARD BLOCK — cannot place order without address
     if (!selectedAddress) {
       showAlert("Select an address", "warning");
       return;
@@ -117,7 +120,7 @@ const Checkout = () => {
           )}
         </Col>
 
-        {/* ================= PRICE DETAILS (ONLY IF CART HAS ITEMS) ================= */}
+        {/* ================= PRICE DETAILS ================= */}
         {validCartItems.length > 0 && (
           <Col md={4}>
             <Card>
