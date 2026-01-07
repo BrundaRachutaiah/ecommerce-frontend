@@ -218,3 +218,41 @@ body,
 .app-content {
   flex: 1;
 }
+
+/* ================================
+   CART ITEM UNIFORM SIZE
+================================ */
+.cart-item-card {
+  min-height: 170px;
+}
+
+.cart-item-body {
+  height: 100%;
+}
+
+.cart-item-image {
+  max-height: 100px;
+  object-fit: contain;
+}
+
+.cart-item-title {
+  min-height: 38px;
+  font-weight: 600;
+}
+
+/* ================================
+   WISHLIST BUTTON UI
+================================ */
+.wishlist-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.wishlist-btn:hover {
+  background-color: #0d6efd;
+  color: #fff;
+  transform: translateY(-1px);
+}
