@@ -3,6 +3,7 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useNavigate } from "react-router-dom";
 import { useAlert } from "../context/AlertContext";
+import { FaHeart } from "react-icons/fa";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -31,9 +32,6 @@ const Cart = () => {
 
   const totalPrice = itemsPrice + deliveryCharge;
 
-  /* ============================
-     MOVE TO WISHLIST
-  ============================ */
   const handleMoveToWishlist = async (e, item) => {
     e.preventDefault();
     try {
@@ -70,20 +68,22 @@ const Cart = () => {
             validCartItems.map((item) => (
               <Card
                 key={`${item.product._id}-${item.size || "na"}`}
-                className="mb-3"
+                className="mb-3 cart-item-card"
               >
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md={3}>
+                <Card.Body className="cart-item-body">
+                  <Row className="align-items-center h-100">
+                    <Col md={3} className="text-center">
                       <img
                         src={item.product.image}
                         alt={item.product.name}
-                        className="img-fluid rounded"
+                        className="img-fluid rounded cart-item-image"
                       />
                     </Col>
 
                     <Col md={4}>
-                      <h6>{item.product.name}</h6>
+                      <h6 className="cart-item-title">
+                        {item.product.name}
+                      </h6>
                       <p className="fw-bold mb-1">
                         ₹{item.product.price}
                       </p>
@@ -112,7 +112,9 @@ const Cart = () => {
                           −
                         </Button>
 
-                        <span className="mx-2">{item.quantity}</span>
+                        <span className="mx-2 fw-bold">
+                          {item.quantity}
+                        </span>
 
                         <Button
                           type="button"
@@ -130,18 +132,20 @@ const Cart = () => {
                         </Button>
                       </div>
 
+                      {/* ✅ Improved Wishlist Button */}
                       <Button
                         type="button"
-                        variant="link"
                         size="sm"
-                        className="p-0"
+                        variant="outline-primary"
+                        className="wishlist-btn"
                         onClick={(e) => handleMoveToWishlist(e, item)}
                       >
+                        <FaHeart className="me-1" />
                         Move to Wishlist
                       </Button>
                     </Col>
 
-                    <Col md={2}>
+                    <Col md={2} className="text-end">
                       <Button
                         type="button"
                         size="sm"
@@ -165,26 +169,21 @@ const Cart = () => {
             <Card.Body>
               <h6>Price Details</h6>
               <hr />
-
               <p>
                 Price ({cartCount} items)
                 <span className="float-end">₹{itemsPrice}</span>
               </p>
-
               <p>
                 Delivery Charges
                 <span className="float-end">
                   {deliveryCharge === 0 ? "Free" : `₹${deliveryCharge}`}
                 </span>
               </p>
-
               <hr />
-
               <h6>
                 Total Amount
                 <span className="float-end">₹{totalPrice}</span>
               </h6>
-
               <Button
                 type="button"
                 className="w-100 mt-3"
