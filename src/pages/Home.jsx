@@ -98,34 +98,29 @@ const Home = () => {
       </Row>
 
       {/* ================= HERO BANNER ================= */}
-<Row className="mb-5">
-  <Col>
-    <div
-      style={{
-        height: "350px",
-        borderRadius: "8px",
-        overflow: "hidden",
-        backgroundColor: "#f5f5f5",
-      }}
-    >
-      <img
-        src="https://images.unsplash.com/photo-1606813902914-5f4b62c8a4ad?auto=format&fit=crop&w=1600&q=80"
-        alt="Hero Banner"
-        loading="lazy"
-        onError={(e) => {
-          e.target.src = "/hero-banner.jpg"; // fallback
-        }}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          display: "block",
-        }}
-      />
-    </div>
-  </Col>
-</Row>
-
+      <Row className="mb-5">
+        <Col>
+          <div
+            style={{
+              height: "350px",
+              borderRadius: "8px",
+              overflow: "hidden",
+              backgroundColor: "#f5f5f5",
+            }}
+          >
+            <img
+              src="/hero-banner.png"
+              alt="Hero Banner"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+              }}
+            />
+          </div>
+        </Col>
+      </Row>
 
       {/* ================= COLLECTION SECTION ================= */}
       <Row className="mb-5">
@@ -135,7 +130,7 @@ const Home = () => {
             <Row className="align-items-center">
               <Col md={4}>
                 <img
-                  src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f"
+                  src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80"
                   alt="New Arrivals"
                   className="img-fluid rounded"
                   style={{ height: "120px", objectFit: "cover" }}
@@ -161,7 +156,7 @@ const Home = () => {
             <Row className="align-items-center">
               <Col md={4}>
                 <img
-                  src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f"
+                  src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80"
                   alt="Sale Items"
                   className="img-fluid rounded"
                   style={{ height: "120px", objectFit: "cover" }}
