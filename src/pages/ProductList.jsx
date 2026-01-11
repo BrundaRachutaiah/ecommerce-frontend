@@ -133,7 +133,13 @@ const ProductList = () => {
     <Container fluid className="mt-4">
       <Row>
         {/* ================= FILTERS ================= */}
-        <Col md={2} className="border-end">
+        <Col
+          lg={2}
+          md={3}
+          sm={12}
+          xs={12}
+          className="border-end mb-4 mb-md-0"
+        >
           <h6>Filters</h6>
 
           <Form onSubmit={(e) => e.preventDefault()}>
@@ -201,7 +207,7 @@ const ProductList = () => {
         </Col>
 
         {/* ================= PRODUCTS ================= */}
-        <Col md={10}>
+        <Col lg={10} md={9} sm={12} xs={12}>
           <h6 className="mb-3">
             Showing Products ({filteredProducts.length})
           </h6>
@@ -216,7 +222,15 @@ const ProductList = () => {
           ) : (
             <Row>
               {filteredProducts.map(product => (
-                <Col md={3} key={product._id} className="mb-4">
+                <Col
+                  key={product._id}
+                  xl={3}
+                  lg={4}
+                  md={6}
+                  sm={6}
+                  xs={12}
+                  className="mb-4"
+                >
                   <ProductCard product={product} />
                 </Col>
               ))}

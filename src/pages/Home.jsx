@@ -68,8 +68,10 @@ const Home = () => {
           categories.map((cat, index) => (
             <Col
               key={`category-${cat._id || index}`}
-              md={2}
-              sm={4}
+              xl={2}
+              lg={3}
+              md={4}
+              sm={6}
               xs={6}
               className="mb-3"
             >
@@ -86,6 +88,7 @@ const Home = () => {
                     cat.image ||
                     `https://picsum.photos/seed/category-${index}/300/200`
                   }
+                  className="img-fluid"
                   style={{ height: "120px", objectFit: "cover" }}
                 />
                 <Card.Body className="p-2">
@@ -102,7 +105,7 @@ const Home = () => {
         <Col>
           <div
             style={{
-              height: "350px",
+              height: "clamp(220px, 40vw, 350px)",
               borderRadius: "8px",
               overflow: "hidden",
               backgroundColor: "#f5f5f5",
@@ -111,12 +114,8 @@ const Home = () => {
             <img
               src="/hero-banner.png"
               alt="Hero Banner"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-              }}
+              className="img-fluid w-100 h-100"
+              style={{ objectFit: "cover", display: "block" }}
             />
           </div>
         </Col>
@@ -125,10 +124,10 @@ const Home = () => {
       {/* ================= COLLECTION SECTION ================= */}
       <Row className="mb-5">
         {/* NEW ARRIVALS */}
-        <Col md={6} className="mb-3">
+        <Col md={6} xs={12} className="mb-3">
           <Card className="border-0 shadow-sm p-4 h-100">
             <Row className="align-items-center">
-              <Col md={4}>
+              <Col md={4} xs={12} className="mb-3 mb-md-0">
                 <img
                   src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80"
                   alt="New Arrivals"
@@ -136,7 +135,7 @@ const Home = () => {
                   style={{ height: "120px", objectFit: "cover" }}
                 />
               </Col>
-              <Col md={8}>
+              <Col md={8} xs={12}>
                 <small className="text-uppercase text-muted">
                   New Arrivals
                 </small>
@@ -151,10 +150,10 @@ const Home = () => {
         </Col>
 
         {/* SALE ITEMS */}
-        <Col md={6} className="mb-3">
+        <Col md={6} xs={12} className="mb-3">
           <Card className="border-0 shadow-sm p-4 h-100">
             <Row className="align-items-center">
-              <Col md={4}>
+              <Col md={4} xs={12} className="mb-3 mb-md-0">
                 <img
                   src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80"
                   alt="Sale Items"
@@ -162,7 +161,7 @@ const Home = () => {
                   style={{ height: "120px", objectFit: "cover" }}
                 />
               </Col>
-              <Col md={8}>
+              <Col md={8} xs={12}>
                 <small className="text-uppercase text-muted">
                   Special Offers
                 </small>

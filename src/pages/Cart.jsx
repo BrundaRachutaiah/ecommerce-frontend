@@ -52,15 +52,16 @@ const Cart = () => {
   }
 
   return (
-    <Container className="mt-4">
+    <Container fluid className="mt-4">
       <h4 className="mb-4">My Cart ({cartCount})</h4>
 
       <Row>
-        <Col md={8}>
+        {/* ================= CART ITEMS ================= */}
+        <Col lg={8} md={7} sm={12} xs={12}>
           {cartCount === 0 ? (
             <div className="text-center my-5">
               <p>Your cart is empty</p>
-              <Button type="button" onClick={() => navigate("/products")}>
+              <Button onClick={() => navigate("/products")}>
                 Continue Shopping
               </Button>
             </div>
@@ -68,22 +69,23 @@ const Cart = () => {
             validCartItems.map((item) => (
               <Card
                 key={`${item.product._id}-${item.size || "na"}`}
-                className="mb-3 cart-item-card"
+                className="mb-3"
               >
-                <Card.Body className="cart-item-body">
-                  <Row className="align-items-center h-100">
-                    <Col md={3} className="text-center">
+                <Card.Body>
+                  <Row className="align-items-center">
+                    {/* IMAGE */}
+                    <Col md={3} sm={4} xs={12} className="text-center mb-3 mb-md-0">
                       <img
                         src={item.product.image}
                         alt={item.product.name}
-                        className="img-fluid rounded cart-item-image"
+                        className="img-fluid rounded"
+                        style={{ maxHeight: "120px", objectFit: "cover" }}
                       />
                     </Col>
 
-                    <Col md={4}>
-                      <h6 className="cart-item-title">
-                        {item.product.name}
-                      </h6>
+                    {/* DETAILS */}
+                    <Col md={4} sm={8} xs={12} className="mb-3 mb-md-0">
+                      <h6>{item.product.name}</h6>
                       <p className="fw-bold mb-1">
                         ₹{item.product.price}
                       </p>
@@ -94,10 +96,10 @@ const Cart = () => {
                       )}
                     </Col>
 
-                    <Col md={3}>
+                    {/* QUANTITY + WISHLIST */}
+                    <Col md={3} sm={6} xs={12} className="mb-3 mb-md-0">
                       <div className="d-flex align-items-center mb-2">
                         <Button
-                          type="button"
                           size="sm"
                           variant="outline-secondary"
                           disabled={item.quantity <= 1}
@@ -117,7 +119,6 @@ const Cart = () => {
                         </span>
 
                         <Button
-                          type="button"
                           size="sm"
                           variant="outline-secondary"
                           onClick={() =>
@@ -132,12 +133,10 @@ const Cart = () => {
                         </Button>
                       </div>
 
-                      {/* ✅ Improved Wishlist Button */}
                       <Button
-                        type="button"
                         size="sm"
                         variant="outline-primary"
-                        className="wishlist-btn"
+                        className="w-100"
                         onClick={(e) => handleMoveToWishlist(e, item)}
                       >
                         <FaHeart className="me-1" />
@@ -145,11 +144,17 @@ const Cart = () => {
                       </Button>
                     </Col>
 
-                    <Col md={2} className="text-end">
+                    {/* REMOVE */}
+                    <Col
+                      md={2}
+                      sm={6}
+                      xs={12}
+                      className="text-md-end text-start"
+                    >
                       <Button
-                        type="button"
                         size="sm"
                         variant="outline-danger"
+                        className="w-100 w-md-auto"
                         onClick={() =>
                           removeFromCart(item.product._id, item.size)
                         }
@@ -164,7 +169,8 @@ const Cart = () => {
           )}
         </Col>
 
-        <Col md={4}>
+        {/* ================= PRICE SUMMARY ================= */}
+        <Col lg={4} md={5} sm={12} xs={12} className="mt-4 mt-md-0">
           <Card>
             <Card.Body>
               <h6>Price Details</h6>
@@ -185,7 +191,6 @@ const Cart = () => {
                 <span className="float-end">₹{totalPrice}</span>
               </h6>
               <Button
-                type="button"
                 className="w-100 mt-3"
                 disabled={cartCount === 0}
                 onClick={() => navigate("/checkout")}

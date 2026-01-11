@@ -59,82 +59,86 @@ const Header = () => {
   =============================== */
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-
     const trimmed = searchTerm.trim();
     if (!trimmed) return;
-
-    // Navigate to product listing with search query
     navigate(`/products?search=${encodeURIComponent(trimmed)}`);
   };
 
   return (
-    <Navbar bg="white" expand="lg" className="shadow-sm">
-      <Container>
+    <Navbar bg="white" expand="lg" className="shadow-sm sticky-top">
+      <Container fluid className="px-2 px-md-4">
         {/* LOGO */}
         <Navbar.Brand as={Link} to="/" className="fw-bold text-primary">
           ShopEase
         </Navbar.Brand>
 
-        {/* SEARCH */}
-        <Form
-          className="mx-auto w-50"
-          onSubmit={handleSearchSubmit}
-        >
-          <Form.Control
-            type="search"
-            placeholder="Search products"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </Form>
+        {/* MOBILE TOGGLE */}
+        <Navbar.Toggle aria-controls="main-navbar" />
 
-        <Nav className="ms-auto align-items-center gap-3">
-          {/* PROFILE */}
-          {isLoggedIn && (
-            <Nav.Link as={Link} to="/profile" title="My Profile">
-              <FaUserCircle size={22} />
-            </Nav.Link>
-          )}
+        {/* COLLAPSIBLE CONTENT */}
+        <Navbar.Collapse id="main-navbar">
+          {/* SEARCH */}
+          <Form
+            className="mx-lg-3 my-2 my-lg-0 flex-grow-1"
+            onSubmit={handleSearchSubmit}
+          >
+            <Form.Control
+              type="search"
+              placeholder="Search products"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </Form>
 
-          {/* LOGIN / LOGOUT */}
-          {!isLoggedIn ? (
-            <Nav.Link as={Link} to="/login">
-              Login
-            </Nav.Link>
-          ) : (
-            <Nav.Link onClick={logoutHandler}>
-              Logout
-            </Nav.Link>
-          )}
-
-          {/* WISHLIST */}
-          <Nav.Link as={Link} to="/wishlist" className="position-relative">
-            <FaHeart size={18} />
-            {wishlistCount > 0 && (
-              <Badge
-                bg="danger"
-                pill
-                className="position-absolute top-0 start-100 translate-middle"
-              >
-                {wishlistCount}
-              </Badge>
+          {/* RIGHT SIDE ICONS */}
+          <Nav className="ms-lg-auto align-items-center gap-3">
+            {/* PROFILE */}
+            {isLoggedIn && (
+              <Nav.Link as={Link} to="/profile" title="My Profile">
+                <FaUserCircle size={22} />
+              </Nav.Link>
             )}
-          </Nav.Link>
 
-          {/* CART */}
-          <Nav.Link as={Link} to="/cart" className="position-relative">
-            <FaShoppingCart size={18} />
-            {cartCount > 0 && (
-              <Badge
-                bg="primary"
-                pill
-                className="position-absolute top-0 start-100 translate-middle"
-              >
-                {cartCount}
-              </Badge>
+            {/* LOGIN / LOGOUT */}
+            {!isLoggedIn ? (
+              <Nav.Link as={Link} to="/login">
+                Login
+              </Nav.Link>
+            ) : (
+              <Nav.Link onClick={logoutHandler}>
+                Logout
+              </Nav.Link>
             )}
-          </Nav.Link>
-        </Nav>
+
+            {/* WISHLIST */}
+            <Nav.Link as={Link} to="/wishlist" className="position-relative">
+              <FaHeart size={18} />
+              {wishlistCount > 0 && (
+                <Badge
+                  bg="danger"
+                  pill
+                  className="position-absolute top-0 start-100 translate-middle"
+                >
+                  {wishlistCount}
+                </Badge>
+              )}
+            </Nav.Link>
+
+            {/* CART */}
+            <Nav.Link as={Link} to="/cart" className="position-relative">
+              <FaShoppingCart size={18} />
+              {cartCount > 0 && (
+                <Badge
+                  bg="primary"
+                  pill
+                  className="position-absolute top-0 start-100 translate-middle"
+                >
+                  {cartCount}
+                </Badge>
+              )}
+            </Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
       </Container>
     </Navbar>
   );
