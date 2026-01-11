@@ -98,27 +98,34 @@ const Home = () => {
       </Row>
 
       {/* ================= HERO BANNER ================= */}
-      <Row className="mb-5">
-        <Col>
-          <div
-            style={{
-              height: "350px",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          >
-            <img
-              src="https://images.unsplash.com/photo-1606813902914-5f4b62c8a4ad"
-              alt="Hero Banner"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          </div>
-        </Col>
-      </Row>
+<Row className="mb-5">
+  <Col>
+    <div
+      style={{
+        height: "350px",
+        borderRadius: "8px",
+        overflow: "hidden",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
+      <img
+        src="https://images.unsplash.com/photo-1606813902914-5f4b62c8a4ad?auto=format&fit=crop&w=1600&q=80"
+        alt="Hero Banner"
+        loading="lazy"
+        onError={(e) => {
+          e.target.src = "/hero-banner.jpg"; // fallback
+        }}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+        }}
+      />
+    </div>
+  </Col>
+</Row>
+
 
       {/* ================= COLLECTION SECTION ================= */}
       <Row className="mb-5">
