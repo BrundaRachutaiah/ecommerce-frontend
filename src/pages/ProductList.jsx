@@ -111,8 +111,12 @@ const ProductList = () => {
     });
   };
 
-  // This handler specifically handles category checkbox changes without page reload
-  const handleCategoryChange = (catId) => {
+  // Fixed handler with explicit event prevention
+  const handleCategoryChange = (e, catId) => {
+    // Prevent any default behavior
+    e.preventDefault();
+    e.stopPropagation();
+    
     setFilters(prev => {
       const updatedCategories = prev.categories.includes(catId)
         ? prev.categories.filter(id => id !== catId)
@@ -157,14 +161,16 @@ const ProductList = () => {
             <Form.Group className="mb-3">
               <Form.Label>Category</Form.Label>
               {categories.map(cat => (
-                <Form.Check
-                  key={cat._id}
-                  type="checkbox"
-                  label={cat.name}
-                  checked={filters.categories.includes(cat._id)}
-                  onChange={() => handleCategoryChange(cat._id)}
-                  // No form submission happens on change
-                />
+                <div key={cat._id} className="mb-2">
+                  <Form.Check
+                    type="checkbox"
+                    label={cat.name}
+                    checked={filters.categories.includes(cat._id)}
+                    onChange={(e) => handleCategoryChange(e, cat._id)}
+                    // Additional props to prevent form submission
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
               ))}
             </Form.Group>
 
