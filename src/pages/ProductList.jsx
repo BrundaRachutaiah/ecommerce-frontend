@@ -29,9 +29,16 @@ const ProductList = () => {
      FETCH CATEGORIES
   =============================== */
   useEffect(() => {
-    API.get("/categories")
-      .then(res => setCategories(res.data.data.categories || []))
-      .catch(err => console.error("Category error:", err));
+    const fetchCategories = async () => {
+      try {
+        const res = await API.get("/categories");
+        setCategories(res.data.data.categories || []);
+      } catch (err) {
+        console.error("Category error:", err);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   /* ===============================
@@ -76,7 +83,7 @@ const ProductList = () => {
   }, [products, filters.rating]);
 
   /* ===============================
-     URL SYNC (SAFE)
+     URL SYNC (SAFE) - This ensures no page reload
   =============================== */
   const syncUrlParams = (updatedFilters) => {
     const params = new URLSearchParams();
@@ -87,6 +94,7 @@ const ProductList = () => {
     if (updatedFilters.sort) params.set("sort", updatedFilters.sort);
     if (updatedFilters.search) params.set("search", updatedFilters.search);
 
+    // Using replace: true prevents page reload
     setSearchParams(params, { replace: true });
   };
 
@@ -103,6 +111,7 @@ const ProductList = () => {
     });
   };
 
+  // This handler specifically handles category checkbox changes without page reload
   const handleCategoryChange = (catId) => {
     setFilters(prev => {
       const updatedCategories = prev.categories.includes(catId)
@@ -142,6 +151,7 @@ const ProductList = () => {
         >
           <h6>Filters</h6>
 
+          {/* Form submission is prevented to avoid page reload */}
           <Form onSubmit={(e) => e.preventDefault()}>
             {/* CATEGORY */}
             <Form.Group className="mb-3">
@@ -153,6 +163,7 @@ const ProductList = () => {
                   label={cat.name}
                   checked={filters.categories.includes(cat._id)}
                   onChange={() => handleCategoryChange(cat._id)}
+                  // No form submission happens on change
                 />
               ))}
             </Form.Group>
