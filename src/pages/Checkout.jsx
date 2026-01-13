@@ -1,17 +1,17 @@
 // src/pages/Checkout.jsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import API from "../api/apiService";
 import { useCart } from "../context/CartContext";
 import { useAlert } from "../context/AlertContext";
+import AddressList from "../components/profile/AddressList";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
   const { showAlert } = useAlert();
 
-  const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -39,27 +39,11 @@ const Checkout = () => {
   const totalPrice = itemsPrice + deliveryCharge;
 
   /* ===============================
-     FETCH ADDRESSES
-  =============================== */
-  useEffect(() => {
-    API.get("/addresses")
-      .then((res) => {
-        const list = res.data?.data?.addresses || [];
-        setAddresses(list);
-
-        // ❌ DO NOT auto-select any address
-        setSelectedAddress(null);
-      })
-      .catch(() => showAlert("Failed to load addresses", "danger"));
-  }, [showAlert]);
-
-  /* ===============================
      PLACE ORDER
   =============================== */
   const placeOrder = async () => {
-    // ✅ HARD BLOCK — cannot place order without address
     if (!selectedAddress) {
-      showAlert("Select an address", "warning");
+      showAlert("Please select an address", "warning");
       return;
     }
 
@@ -100,9 +84,22 @@ const Checkout = () => {
   return (
     <Container className="mt-4">
       <Row>
-        {/* ================= ORDER SUMMARY ================= */}
-        <Col md={validCartItems.length > 0 ? 8 : 12}>
-          <h5>Order Summary</h5>
+        {/* ================= LEFT SECTION ================= */}
+        <Col md={8}>
+          {/* ADDRESS SELECTION */}
+          <AddressList onSelect={setSelectedAddress} />
+
+          {selectedAddress && (
+            <Alert variant="success">
+              Delivering to:{" "}
+              <strong>
+                {selectedAddress.name}, {selectedAddress.city}
+              </strong>
+            </Alert>
+          )}
+
+          {/* ORDER SUMMARY */}
+          <h5 className="mt-4">Order Summary</h5>
 
           {validCartItems.length === 0 ? (
             <Alert variant="info">Your cart is empty</Alert>
@@ -143,6 +140,7 @@ const Checkout = () => {
                   <span className="float-end">₹{totalPrice}</span>
                 </h6>
                 <Button
+                  type="button"
                   className="w-100 mt-3"
                   disabled={loading}
                   onClick={placeOrder}
