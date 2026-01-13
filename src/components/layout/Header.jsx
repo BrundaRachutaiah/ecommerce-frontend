@@ -13,7 +13,7 @@ const Header = () => {
   const { wishlist } = useWishlist();
 
   /* ===============================
-     LOGIN CHECK
+      LOGIN CHECK
   =============================== */
   const checkIsLoggedIn = () => {
     const userInfo = localStorage.getItem("userInfo");
@@ -30,12 +30,12 @@ const Header = () => {
   }, [location.pathname]);
 
   /* ===============================
-     SEARCH STATE
+      SEARCH STATE
   =============================== */
   const [searchTerm, setSearchTerm] = useState("");
 
   /* ===============================
-     COUNTS
+      COUNTS
   =============================== */
   const cartCount = cart.reduce(
     (total, item) => total + (item.quantity || 0),
@@ -45,7 +45,7 @@ const Header = () => {
   const wishlistCount = wishlist.length;
 
   /* ===============================
-     LOGOUT
+      LOGOUT
   =============================== */
   const logoutHandler = () => {
     localStorage.removeItem("userInfo");
@@ -55,7 +55,7 @@ const Header = () => {
   };
 
   /* ===============================
-     SEARCH HANDLER
+      SEARCH HANDLER
   =============================== */
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -90,52 +90,58 @@ const Header = () => {
             />
           </Form>
 
-          {/* RIGHT SIDE ICONS */}
-          <Nav className="ms-lg-auto align-items-center gap-3">
+          {/* RIGHT SIDE ICONS - Arranged vertically on mobile, horizontal on lg */}
+          <Nav className="ms-lg-auto align-items-start align-items-lg-center gap-3 my-2 my-lg-0">
             {/* PROFILE */}
             {isLoggedIn && (
-              <Nav.Link as={Link} to="/profile" title="My Profile">
+              <Nav.Link as={Link} to="/profile" title="My Profile" className="py-2 py-lg-0">
                 <FaUserCircle size={22} />
               </Nav.Link>
             )}
 
             {/* LOGIN / LOGOUT */}
             {!isLoggedIn ? (
-              <Nav.Link as={Link} to="/login">
+              <Nav.Link as={Link} to="/login" className="py-2 py-lg-0">
                 Login
               </Nav.Link>
             ) : (
-              <Nav.Link onClick={logoutHandler}>
+              <Nav.Link onClick={logoutHandler} className="py-2 py-lg-0">
                 Logout
               </Nav.Link>
             )}
 
             {/* WISHLIST */}
-            <Nav.Link as={Link} to="/wishlist" className="position-relative">
-              <FaHeart size={18} />
-              {wishlistCount > 0 && (
-                <Badge
-                  bg="danger"
-                  pill
-                  className="position-absolute top-0 start-100 translate-middle"
-                >
-                  {wishlistCount}
-                </Badge>
-              )}
+            <Nav.Link as={Link} to="/wishlist" className="position-relative py-2 py-lg-0">
+              <div className="d-flex align-items-center">
+                <FaHeart size={18} />
+                {wishlistCount > 0 && (
+                  <Badge
+                    bg="danger"
+                    pill
+                    className="ms-2 ms-lg-0 position-lg-absolute top-lg-0 start-lg-100 translate-middle-lg"
+                    style={{ fontSize: "0.7rem" }}
+                  >
+                    {wishlistCount}
+                  </Badge>
+                )}
+              </div>
             </Nav.Link>
 
             {/* CART */}
-            <Nav.Link as={Link} to="/cart" className="position-relative">
-              <FaShoppingCart size={18} />
-              {cartCount > 0 && (
-                <Badge
-                  bg="primary"
-                  pill
-                  className="position-absolute top-0 start-100 translate-middle"
-                >
-                  {cartCount}
-                </Badge>
-              )}
+            <Nav.Link as={Link} to="/cart" className="position-relative py-2 py-lg-0">
+              <div className="d-flex align-items-center">
+                <FaShoppingCart size={18} />
+                {cartCount > 0 && (
+                  <Badge
+                    bg="primary"
+                    pill
+                    className="ms-2 ms-lg-0 position-lg-absolute top-lg-0 start-lg-100 translate-middle-lg"
+                    style={{ fontSize: "0.7rem" }}
+                  >
+                    {cartCount}
+                  </Badge>
+                )}
+              </div>
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>

@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import { Container, Row, Col, Card, Alert } from "react-bootstrap";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -127,12 +126,18 @@ const Home = () => {
         <Col md={6} xs={12} className="mb-3">
           <Card className="border-0 shadow-sm p-4 h-100">
             <Row className="align-items-center">
-              <Col md={4} xs={12} className="mb-3 mb-md-0">
+              <Col md={4} xs={12} className="mb-3 mb-md-0 text-center">
                 <img
                   src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80"
                   alt="New Arrivals"
-                  className="img-fluid rounded"
-                  style={{ height: "120px", objectFit: "cover" }}
+                  // Use w-100 on small screens and w-md-auto for tablet/desktop
+                  className="img-fluid rounded w-100"
+                  style={{ 
+                    height: "140px", // Increased height for mobile prominence
+                    maxHeight: "160px",
+                    objectFit: "cover",
+                    maxWidth: "100%" 
+                  }}
                 />
               </Col>
               <Col md={8} xs={12}>
@@ -153,12 +158,18 @@ const Home = () => {
         <Col md={6} xs={12} className="mb-3">
           <Card className="border-0 shadow-sm p-4 h-100">
             <Row className="align-items-center">
-              <Col md={4} xs={12} className="mb-3 mb-md-0">
+              <Col md={4} xs={12} className="mb-3 mb-md-0 text-center">
                 <img
                   src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80"
                   alt="Sale Items"
-                  className="img-fluid rounded"
-                  style={{ height: "120px", objectFit: "cover" }}
+                  // Use w-100 on small screens
+                  className="img-fluid rounded w-100"
+                  style={{ 
+                    height: "140px", 
+                    maxHeight: "160px",
+                    objectFit: "cover",
+                    maxWidth: "100%" 
+                  }}
                 />
               </Col>
               <Col md={8} xs={12}>

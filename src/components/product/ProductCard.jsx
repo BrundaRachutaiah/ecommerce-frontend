@@ -77,10 +77,12 @@ const ProductCard = ({ product }) => {
           className="product-img"
         />
 
+        {/* Updated Button with flexbox centering classes */}
         <Button
           variant="light"
-          className="wishlist-btn"
+          className="wishlist-btn d-flex align-items-center justify-content-center shadow-sm"
           onClick={handleWishlist}
+          style={{ padding: 0 }} // Ensures padding doesn't offset the centered icon
         >
           {isWishlisted ? (
             <FaHeart className="text-danger" />
