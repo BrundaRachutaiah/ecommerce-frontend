@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { useSearchParams } from "react-router-dom";
 import API from "../api/apiService";
@@ -14,7 +14,7 @@ const ProductList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   /* ===============================
-     FILTER STATE (URL → STATE)
+      FILTER STATE (URL → STATE)
   =============================== */
   const [filters, setFilters] = useState({
     categories: searchParams.get("category")
@@ -26,7 +26,7 @@ const ProductList = () => {
   });
 
   /* ===============================
-     FETCH CATEGORIES
+      FETCH CATEGORIES (Once)
   =============================== */
   useEffect(() => {
     const fetchCategories = async () => {
@@ -37,19 +37,17 @@ const ProductList = () => {
         console.error("Category error:", err);
       }
     };
-
     fetchCategories();
   }, []);
 
   /* ===============================
-     FETCH PRODUCTS (NO URL MUTATION)
+      FETCH PRODUCTS 
   =============================== */
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-
         if (filters.categories.length > 0)
           params.append("category", filters.categories.join(","));
         if (filters.sort) params.append("sort", filters.sort);
@@ -68,24 +66,20 @@ const ProductList = () => {
   }, [filters.categories, filters.sort, filters.search]);
 
   /* ===============================
-     FRONTEND FILTER (RATING)
+      FRONTEND FILTER (RATING)
   =============================== */
   useEffect(() => {
     let temp = [...products];
-
     if (filters.rating) {
-      temp = temp.filter(
-        p => Number(p.rating) >= Number(filters.rating)
-      );
+      temp = temp.filter(p => Number(p.rating) >= Number(filters.rating));
     }
-
     setFilteredProducts(temp);
   }, [products, filters.rating]);
 
   /* ===============================
-     URL SYNC (SAFE) - This ensures no page reload
+      URL SYNC (STABLE)
   =============================== */
-  const syncUrlParams = (updatedFilters) => {
+  const syncUrlParams = useCallback((updatedFilters) => {
     const params = new URLSearchParams();
 
     if (updatedFilters.categories.length > 0)
@@ -94,29 +88,21 @@ const ProductList = () => {
     if (updatedFilters.sort) params.set("sort", updatedFilters.sort);
     if (updatedFilters.search) params.set("search", updatedFilters.search);
 
-    // Using replace: true prevents page reload
+    // replace: true prevents pushing a new entry to browser history
     setSearchParams(params, { replace: true });
-  };
+  }, [setSearchParams]);
 
   /* ===============================
-     HANDLERS
+      HANDLERS
   =============================== */
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-
-    setFilters(prev => {
-      const updated = { ...prev, [name]: value };
-      syncUrlParams(updated);
-      return updated;
-    });
+    const updated = { ...filters, [name]: value };
+    setFilters(updated);
+    syncUrlParams(updated);
   };
 
-  // Fixed handler with explicit event prevention
-  const handleCategoryChange = (e, catId) => {
-    // Prevent any default behavior
-    e.preventDefault();
-    e.stopPropagation();
-    
+  const handleCategoryChange = (catId) => {
     setFilters(prev => {
       const updatedCategories = prev.categories.includes(catId)
         ? prev.categories.filter(id => id !== catId)
@@ -129,33 +115,17 @@ const ProductList = () => {
   };
 
   const clearFilters = () => {
-    const cleared = {
-      categories: [],
-      rating: "",
-      sort: "",
-      search: "",
-    };
-
+    const cleared = { categories: [], rating: "", sort: "", search: "" };
     setFilters(cleared);
     setSearchParams({}, { replace: true });
   };
 
-  if (loading) return <Loader />;
-
   return (
     <Container fluid className="mt-4">
       <Row>
-        {/* ================= FILTERS ================= */}
-        <Col
-          lg={2}
-          md={3}
-          sm={12}
-          xs={12}
-          className="border-end mb-4 mb-md-0"
-        >
+        <Col lg={2} md={3} sm={12} className="border-end mb-4 mb-md-0">
           <h6>Filters</h6>
-
-          {/* Form submission is prevented to avoid page reload */}
+          {/* Prevent form default submit which triggers reload */}
           <Form onSubmit={(e) => e.preventDefault()}>
             {/* CATEGORY */}
             <Form.Group className="mb-3">
@@ -164,11 +134,10 @@ const ProductList = () => {
                 <div key={cat._id} className="mb-2">
                   <Form.Check
                     type="checkbox"
+                    id={`cat-${cat._id}`}
                     label={cat.name}
                     checked={filters.categories.includes(cat._id)}
-                    onChange={(e) => handleCategoryChange(e, cat._id)}
-                    // Additional props to prevent form submission
-                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => handleCategoryChange(cat._id)}
                   />
                 </div>
               ))}
@@ -184,6 +153,7 @@ const ProductList = () => {
                   name="rating"
                   label={`${r}★ & above`}
                   value={r}
+                  id={`rating-${r}`}
                   checked={filters.rating === r}
                   onChange={handleFilterChange}
                 />
@@ -196,6 +166,7 @@ const ProductList = () => {
               <Form.Check
                 type="radio"
                 name="sort"
+                id="sort-low"
                 label="Low to High"
                 value="price_low_high"
                 checked={filters.sort === "price_low_high"}
@@ -204,6 +175,7 @@ const ProductList = () => {
               <Form.Check
                 type="radio"
                 name="sort"
+                id="sort-high"
                 label="High to Low"
                 value="price_high_low"
                 checked={filters.sort === "price_high_low"}
@@ -223,34 +195,28 @@ const ProductList = () => {
           </Form>
         </Col>
 
-        {/* ================= PRODUCTS ================= */}
-        <Col lg={10} md={9} sm={12} xs={12}>
-          <h6 className="mb-3">
-            Showing Products ({filteredProducts.length})
-          </h6>
+        <Col lg={10} md={9} sm={12}>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6>Showing Products ({filteredProducts.length})</h6>
+            {/* Minimal loader indicator inside the view so the UI stays stable */}
+            {loading && products.length > 0 && <span className="text-muted small">Updating...</span>}
+          </div>
 
-          {filteredProducts.length === 0 ? (
-            <div className="text-center my-5">
-              <h5>No products found</h5>
-              <Button variant="outline-primary" onClick={clearFilters}>
-                Clear Filters
-              </Button>
-            </div>
+          {loading && products.length === 0 ? (
+            <Loader />
           ) : (
             <Row>
-              {filteredProducts.map(product => (
-                <Col
-                  key={product._id}
-                  xl={3}
-                  lg={4}
-                  md={6}
-                  sm={6}
-                  xs={12}
-                  className="mb-4"
-                >
-                  <ProductCard product={product} />
+              {filteredProducts.length === 0 ? (
+                <Col className="text-center my-5">
+                  <h5>No products found</h5>
                 </Col>
-              ))}
+              ) : (
+                filteredProducts.map(product => (
+                  <Col key={product._id} xl={3} lg={4} md={6} sm={6} xs={12} className="mb-4">
+                    <ProductCard product={product} />
+                  </Col>
+                ))
+              )}
             </Row>
           )}
         </Col>
