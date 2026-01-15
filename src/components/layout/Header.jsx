@@ -27,17 +27,19 @@ const Header = () => {
   const wishlistCount = wishlist.length;
 
   /* ===============================
-      SEARCH HANDLER
+      SEARCH HANDLER (FIXED)
   =============================== */
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const trimmed = searchTerm.trim();
     if (!trimmed) return;
 
-    // keep existing working behavior
     navigate(
       `/products?search=${encodeURIComponent(trimmed)}&_=${Date.now()}`
     );
+
+    // ✅ FIX: clear input after search
+    setSearchTerm("");
   };
 
   return (
@@ -66,7 +68,7 @@ const Header = () => {
 
           {/* RIGHT SIDE ICONS */}
           <Nav className="ms-lg-auto align-items-start align-items-lg-center gap-3 my-2 my-lg-0">
-            {/* PROFILE (Always visible) */}
+            {/* PROFILE */}
             <Nav.Link as={Link} to="/profile" title="Profile">
               <FaUserCircle size={22} />
             </Nav.Link>
