@@ -26,7 +26,22 @@ const ProductList = () => {
   });
 
   /* ===============================
-      FETCH CATEGORIES (Once)
+      SYNC URL → FILTER STATE
+  =============================== */
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      categories: searchParams.get("category")
+        ? searchParams.get("category").split(",")
+        : [],
+      rating: searchParams.get("rating") || "",
+      sort: searchParams.get("sort") || "",
+      search: searchParams.get("search") || "",
+    }));
+  }, [searchParams]);
+
+  /* ===============================
+      FETCH CATEGORIES
   =============================== */
   useEffect(() => {
     const fetchCategories = async () => {
@@ -41,14 +56,14 @@ const ProductList = () => {
   }, []);
 
   /* ===============================
-      FETCH PRODUCTS 
+      FETCH PRODUCTS
   =============================== */
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-        if (filters.categories.length > 0)
+        if (filters.categories.length)
           params.append("category", filters.categories.join(","));
         if (filters.sort) params.append("sort", filters.sort);
         if (filters.search) params.append("search", filters.search);
@@ -71,24 +86,25 @@ const ProductList = () => {
   useEffect(() => {
     let temp = [...products];
     if (filters.rating) {
-      temp = temp.filter(p => Number(p.rating) >= Number(filters.rating));
+      temp = temp.filter(
+        p => Number(p.rating) >= Number(filters.rating)
+      );
     }
     setFilteredProducts(temp);
   }, [products, filters.rating]);
 
   /* ===============================
-      URL SYNC (STABLE)
+      URL SYNC
   =============================== */
   const syncUrlParams = useCallback((updatedFilters) => {
     const params = new URLSearchParams();
 
-    if (updatedFilters.categories.length > 0)
+    if (updatedFilters.categories.length)
       params.set("category", updatedFilters.categories.join(","));
     if (updatedFilters.rating) params.set("rating", updatedFilters.rating);
     if (updatedFilters.sort) params.set("sort", updatedFilters.sort);
     if (updatedFilters.search) params.set("search", updatedFilters.search);
 
-    // replace: true prevents pushing a new entry to browser history
     setSearchParams(params, { replace: true });
   }, [setSearchParams]);
 
@@ -121,39 +137,46 @@ const ProductList = () => {
   };
 
   return (
-    <Container fluid className="mt-4">
+    <Container fluid className="mt-4 px-3 px-lg-4">
       <Row>
-        <Col lg={2} md={3} sm={12} className="border-end mb-4 mb-md-0">
-          <h6>Filters</h6>
-          {/* Prevent form default submit which triggers reload */}
+        {/* FILTER SIDEBAR */}
+        <Col
+          lg={2}
+          md={3}
+          sm={12}
+          className="border-end mb-4 mb-md-0 px-3"
+        >
+          <h6 className="mb-3">Filters</h6>
+
           <Form onSubmit={(e) => e.preventDefault()}>
             {/* CATEGORY */}
-            <Form.Group className="mb-3">
-              <Form.Label>Category</Form.Label>
-              {categories.map(cat => (
-                <div key={cat._id} className="mb-2">
+            <Form.Group className="mb-4">
+              <Form.Label className="fw-semibold">Category</Form.Label>
+              <div className="ps-1">
+                {categories.map(cat => (
                   <Form.Check
+                    key={cat._id}
                     type="checkbox"
-                    id={`cat-${cat._id}`}
                     label={cat.name}
+                    className="mb-2"
                     checked={filters.categories.includes(cat._id)}
                     onChange={() => handleCategoryChange(cat._id)}
                   />
-                </div>
-              ))}
+                ))}
+              </div>
             </Form.Group>
 
             {/* RATING */}
-            <Form.Group className="mb-3">
-              <Form.Label>Rating</Form.Label>
+            <Form.Group className="mb-4">
+              <Form.Label className="fw-semibold">Rating</Form.Label>
               {["4", "3", "2"].map(r => (
                 <Form.Check
                   key={r}
                   type="radio"
                   name="rating"
-                  label={`${r}★ & above`}
                   value={r}
-                  id={`rating-${r}`}
+                  label={`${r}★ & above`}
+                  className="mb-2"
                   checked={filters.rating === r}
                   onChange={handleFilterChange}
                 />
@@ -161,30 +184,28 @@ const ProductList = () => {
             </Form.Group>
 
             {/* SORT */}
-            <Form.Group className="mb-3">
-              <Form.Label>Sort by Price</Form.Label>
+            <Form.Group className="mb-4">
+              <Form.Label className="fw-semibold">Sort by Price</Form.Label>
               <Form.Check
                 type="radio"
                 name="sort"
-                id="sort-low"
-                label="Low to High"
                 value="price_low_high"
+                label="Low to High"
+                className="mb-2"
                 checked={filters.sort === "price_low_high"}
                 onChange={handleFilterChange}
               />
               <Form.Check
                 type="radio"
                 name="sort"
-                id="sort-high"
-                label="High to Low"
                 value="price_high_low"
+                label="High to Low"
                 checked={filters.sort === "price_high_low"}
                 onChange={handleFilterChange}
               />
             </Form.Group>
 
             <Button
-              type="button"
               variant="outline-secondary"
               size="sm"
               className="w-100"
@@ -195,24 +216,35 @@ const ProductList = () => {
           </Form>
         </Col>
 
-        <Col lg={10} md={9} sm={12}>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h6>Showing Products ({filteredProducts.length})</h6>
-            {/* Minimal loader indicator inside the view so the UI stays stable */}
-            {loading && products.length > 0 && <span className="text-muted small">Updating...</span>}
+        {/* PRODUCT LIST */}
+        <Col lg={10} md={9} sm={12} className="ps-lg-4 pt-2">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h6 className="mb-0">
+              Showing Products ({filteredProducts.length})
+            </h6>
+            {loading && (
+              <span className="text-muted small">Updating...</span>
+            )}
           </div>
 
           {loading && products.length === 0 ? (
             <Loader />
           ) : (
-            <Row>
+            <Row className="g-4">
               {filteredProducts.length === 0 ? (
                 <Col className="text-center my-5">
                   <h5>No products found</h5>
                 </Col>
               ) : (
                 filteredProducts.map(product => (
-                  <Col key={product._id} xl={3} lg={4} md={6} sm={6} xs={12} className="mb-4">
+                  <Col
+                    key={product._id}
+                    xl={3}
+                    lg={4}
+                    md={6}
+                    sm={6}
+                    xs={12}
+                  >
                     <ProductCard product={product} />
                   </Col>
                 ))

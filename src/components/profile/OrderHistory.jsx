@@ -44,16 +44,37 @@ const OrderHistory = () => {
           <p>No orders placed yet</p>
         ) : (
           orders.map((order) => (
-            <div key={order._id} className="mb-3 small">
+            <div key={order._id} className="mb-4 small">
               <strong>Order ID:</strong> {order._id}
               <br />
+
               <strong>Order Date:</strong>{" "}
               {formatDate(order.createdAt)}
               <br />
+
               <strong>Total:</strong> ₹{order.totalPrice}
               <br />
+
               <strong>Status:</strong>{" "}
               {order.isDelivered ? "Delivered" : "Processing"}
+
+              {/* ✅ ITEMS ORDERED WITH QUANTITY */}
+              {Array.isArray(order.orderItems) &&
+                order.orderItems.length > 0 && (
+                  <>
+                    <div className="mt-2">
+                      <strong>Items Ordered:</strong>
+                      <ul className="ps-3 mb-0">
+                        {order.orderItems.map((item, index) => (
+                          <li key={index}>
+                            {item.name} × {item.quantity}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                )}
+
               <hr />
             </div>
           ))
