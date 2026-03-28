@@ -1,18 +1,123 @@
-# React + Vite
+# 🛍️ E-commerce Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern and responsive e-commerce frontend application where users can browse products, search, filter, manage cart, wishlist, and place orders.
 
-Currently, two official plugins are available:
+Built using **React.js (Vite)** with a clean UI and fast performance.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🚀 Features
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+### 🏠 Home Page
 
-Note: This will impact Vite dev & build performances.
+* Displays featured and latest products
+* Responsive design
 
-## Expanding the ESLint configuration
+### 🛍️ Product Listing
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+* View all products
+* Filter by category, price, rating
+* Real-time search
+* Pagination support
+
+### 📖 Product Details
+
+* View detailed product info
+* Select size & quantity
+* Add to cart / wishlist
+
+### 🛒 Cart
+
+* Add/remove products
+* Update quantity
+* Clear cart
+
+### ❤️ Wishlist
+
+* Add/remove items
+
+### 📦 Orders
+
+* Place orders
+* Buy now feature
+* Order summary
+
+### 📍 Address Management
+
+* Add / edit / delete addresses
+
+### 🔐 Authentication
+
+* Login & Signup
+* Protected routes
+
+---
+
+## 🛠️ Tech Stack
+
+* React.js (Vite)
+* React Router
+* Axios
+
+---
+
+## ⚡ Installation & Setup
+
+```bash id="m6wgs6"
+git clone https://github.com/BrundaRachutaiah/ecommerce-frontend.git
+cd ecommerce-frontend-main
+npm install
+```
+
+---
+
+## ▶️ Run the App
+
+```bash id="w86znf"
+npm run dev
+```
+
+App runs at:
+
+```id="oqrhmr"
+http://localhost:5173
+```
+
+---
+
+## 🔗 Backend API
+
+Make sure backend is running:
+
+```id="q5hhd9"
+http://localhost:5000
+```
+
+---
+
+## 📂 Project Structure
+
+```id="9g3pji"
+src/
+├── components/
+├── pages/
+├── services/
+├── context/
+├── hooks/
+└── App.jsx
+```
+
+---
+
+## 📬 Contact
+
+[brundadr315@gmail.com](mailto:brundadr315@gmail.com)
+
+---
+
+## ⭐ Future Improvements
+
+* Payment integration 💳
+* UI/UX improvements
+* Admin dashboard
+* Performance optimization
